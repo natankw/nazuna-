@@ -4,7 +4,7 @@
   "nomebot": "Nazuna",
   "prefixo": ".",
   "site_vex": "https://vexapi.com.br",
-  "apikey_vex": "SUAKEY",
+  "apikey_vex": "",
   "lidowner": "278696501993618@lid",
   "github_ofc": "https://github.com/DevTokyoVx/nazuna",
   "autor": "DevTokyoVx",
@@ -17,5 +17,5 @@
       1034740716
     ]
   },
-  "globalMode": false
+  "globalMode": true
 }

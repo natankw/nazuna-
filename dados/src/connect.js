@@ -1,4 +1,4 @@
-import { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, makeWASocket } from 'baileys';
+import { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, makeWASocket, fetchLatestBaileysVersion, isJidBroadcast, isJidNewsletter, isJidStatusBroadcast } from 'baileys';
 import { Boom } from '@hapi/boom';
 import NodeCache from 'node-cache';
 import readline from 'readline';
@@ -462,7 +462,9 @@ async function createGroupMessage(NazunaSock, groupMetadata, participants, setti
     ? (globalJson.textbv || "╭━━━⊱ 🌟 *BEM-VINDO(A/S)!* 🌟 ⊱━━━╮\n│\n│ 👤 #numerodele#\n│\n│ 🏠 Grupo: *#nomedogp#*\n│ 👥 Membros: *#membros#*\n│\n╰━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n✨ *Seja bem-vindo(a/s) ao grupo!* ✨")
     : (globalJson.exit?.text || "╭━━━⊱ 👋 *ATÉ LOGO!* 👋 ⊱━━━╮\n│\n│ 👤 #numerodele#\n│\n│ 🚪 Saiu do grupo\n│ *#nomedogp#*\n│\n╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n💫 *Até a próxima!* 💫");
 
-  const text = formatMessageText(settings.text || defaultText, replacements);
+  // textbv do grupo tem prioridade absoluta; se não tiver, usa o padrão. Nunca concatena os dois.
+  const chosenText = settings.textbv || defaultText;
+  const text = formatMessageText(chosenText, replacements);
 
   const message = {
     text,
@@ -678,7 +680,7 @@ async function handleGroupParticipantsUpdate(NazunaSock, inf) {
                         NazunaSock,
                         groupMetadata,
                         membersToWelcome,
-                        groupSettings.welcome || { text: groupSettings.textbv }
+                        { ...(groupSettings.welcome || {}), textbv: groupSettings.textbv }
                     );
 
                     await NazunaSock.sendMessage(from, message);
@@ -1221,8 +1223,8 @@ async function createBotSocket(authDir) {
             signalRepository
         } = await useMultiFileAuthState(authDir, makeCacheableSignalKeyStore);
 
-        // Busca a versão mais recente do WhatsApp
-        const version = [2, 3000, 1035194821];
+        // Busca a versão mais recente do WhatsApp via Baileys
+        const { version } = await fetchLatestBaileysVersion();
         console.log(`📱 Usando versão do WhatsApp: ${version.join('.')}`);
 
         const NazunaSock = makeWASocket({
@@ -1230,13 +1232,17 @@ async function createBotSocket(authDir) {
             emitOwnEvents: true,
             fireInitQueries: true,
             generateHighQualityLinkPreview: true,
-            syncFullHistory: true,
+            syncFullHistory: false,
             markOnlineOnConnect: true,
             connectTimeoutMs: 120000,
             retryRequestDelayMs: 5000,
             qrTimeout: 180000,
             keepAliveIntervalMs: 30_000,
             defaultQueryTimeoutMs: undefined,
+            maxMsgRetryCount: 5,
+            shouldIgnoreJid: (jid) =>
+                isJidBroadcast(jid) || isJidStatusBroadcast(jid) || isJidNewsletter(jid),
+            shouldSyncHistoryMessage: () => false,
             msgRetryCounterCache,
             auth: state,
             signalRepository,
@@ -1244,15 +1250,16 @@ async function createBotSocket(authDir) {
         });
 
         if (codeMode && !NazunaSock.authState.creds.registered) {
-            console.log('📱 Insira o número de telefone (com código de país, ex: 551199999999): ');
+            console.log('📱 Insira o número de telefone (com código de país, ex: +5511912345678 ou +554112345678): ');
             let phoneNumber = await ask('--> ');
             phoneNumber = phoneNumber.replace(/\D/g, '');
             if (!/^\d{10,15}$/.test(phoneNumber)) {
                 console.log('⚠️ Número inválido! Use um número válido com código de país (ex: 551199999999).');
                 process.exit(1);
             }
-            const code = await NazunaSock.requestPairingCode(phoneNumber.replaceAll('+', '').replaceAll(' ', '').replaceAll('-', ''));
-            console.log(`🔑 Código de pareamento: ${code}`);
+            const rawCode = await NazunaSock.requestPairingCode(phoneNumber);
+            const formattedCode = rawCode?.match(/.{1,4}/g)?.join('-') || rawCode;
+            console.log(`🔑 Código de pareamento: ${formattedCode}`);
             console.log('📲 Envie este código no WhatsApp para autenticar o bot.');
         }
 

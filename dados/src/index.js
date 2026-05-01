@@ -4350,6 +4350,9 @@ if (  isGroup &&  groupData.antistickerplus &&  !isGroupAdmin &&  !isOwner &&  !
     }
     if (budy2.match(/^(\d+)d(\d+)$/)) reply(+budy2.match(/^(\d+)d(\d+)$/)[1] > 50 || +budy2.match(/^(\d+)d(\d+)$/)[2] > 100 ? "❌ Limite: max 50 dados e 100 lados" : "🎲 Rolando " + budy2.match(/^(\d+)d(\d+)$/)[1] + "d" + budy2.match(/^(\d+)d(\d+)$/)[2] + "...\n🎯 Resultados: " + (r = [...Array(+budy2.match(/^(\d+)d(\d+)$/)[1])].map(_ => 1 + Math.floor(Math.random() * +budy2.match(/^(\d+)d(\d+)$/)[2]))).join(", ") + "\n📊 Total: " + r.reduce((a, b) => a + b, 0));
 
+
+
+
     const _botShort = (nazu && nazu.user && (nazu.user.id || nazu.user.lid)) ? String((nazu.user.id || nazu.user.lid).split(':')[0]) : '';
     // Não processar pela assistente se a mensagem veio do PRO (evita loop infinito)
     if (!info.key.fromMe && isAssistente && !isCmd && !info._fromPro && ((_botShort && budy2.includes(_botShort)) || (menc_os2 && menc_os2 == botNumber))) {
@@ -4705,6 +4708,9 @@ if (  isGroup &&  groupData.antistickerplus &&  !isGroupAdmin &&  !isOwner &&  !
         });
       }
     }
+
+
+
     //ANTI FLOOD DE MENSAGENS
     if (isGroup && groupData.messageLimit?.enabled && !isGroupAdmin && !isOwnerOrSub && !info.key.fromMe) {
       try {
@@ -28353,75 +28359,79 @@ ${prefix}antistickerplus remover → remove usuário e apaga mensagem
           reply("Ocorreu um erro 💔");
         }
         break;
-      case 'assistente':
-      case 'assistent':
-        try {
 
-          if (!isGroup) return reply("Isso só pode ser usado em grupo 💔");
-          if (!isGroupAdmin) return reply("Você precisa ser administrador 💔");
+case 'assistente':
+case 'assistent':
+  try {
 
-          const groupFilePath = __dirname + `/../database/grupos/${from}.json`;
-          let groupData = fs.existsSync(groupFilePath) ? JSON.parse(fs.readFileSync(groupFilePath)) : {};
+    if (!isGroup) return reply("Isso só pode ser usado em grupo 💔");
+    if (!isGroupAdmin) return reply("Você precisa ser administrador 💔");
 
-          // Se não tem argumento, apenas ativa/desativa
-          if (!q) {
-            groupData.assistente = !groupData.assistente;
-            if (!groupData.assistente) {
-              // Se desativar, remove a personalidade
-              delete groupData.assistentePersonality;
-            } else {
-              // Se ativar sem especificar, usa padrão
-              groupData.assistentePersonality = groupData.assistentePersonality || 'nazuna';
-            }
-            fs.writeFileSync(groupFilePath, JSON.stringify(groupData, null, 2));
+    const groupFilePath = __dirname + `/../database/grupos/${from}.json`;
+    let groupData = fs.existsSync(groupFilePath) ? JSON.parse(fs.readFileSync(groupFilePath)) : {};
 
-            const statusMsg = groupData.assistente
-              ? `✅ *Assistente ativada com sucesso!*\n\n` +
-              `🤖 *Personalidade atual:* ${groupData.assistentePersonality === 'nazuna' ? 'Nazuna (Padrão)' : groupData.assistentePersonality === 'humana' ? 'Humana' : groupData.assistentePersonality === 'pro' ? 'Pro (Comandos)' : 'IA Normal'}\n\n` +
-              `💡 *Trocar personalidade:*\n` +
-              `• ${prefix}assistente nazuna - Personalidade padrão Nazuna\n` +
-              `• ${prefix}assistente humana - Age 100% como humana\n` +
-              `• ${prefix}assistente ia - IA normal sem personalidade\n` +
-              `• ${prefix}assistente pro - Interpreta comandos em linguagem natural\n\n` +
-              `🧠 A IA aprende com base nos padrões de conversa para oferecer respostas mais relevantes.`
-              : `❌ *Assistente desativada!*`;
+    if (!q) {
+      groupData.assistente = !groupData.assistente;
 
-            return reply(statusMsg);
-          }
+      if (!groupData.assistente) {
+        delete groupData.assistentePersonality;
+      } else {
+        groupData.assistentePersonality = groupData.assistentePersonality || 'nazuna';
+      }
 
-          // Se tem argumento, define a personalidade
-          const personality = q.toLowerCase().trim();
+      fs.writeFileSync(groupFilePath, JSON.stringify(groupData, null, 2));
 
-          if (!['nazuna', 'humana', 'ia', 'pro'].includes(personality)) {
-            return reply(`❌ *Personalidade inválida!*\n\n` +
-              `Escolha uma das opções:\n` +
-              `• ${prefix}assistente nazuna - Personalidade padrão Nazuna (vampira tsundere)\n` +
-              `• ${prefix}assistente humana - Age 100% como uma pessoa real\n` +
-              `• ${prefix}assistente ia - IA normal e objetiva\n` +
-              `• ${prefix}assistente pro - Interpreta comandos em linguagem natural`);
-          }
+      const statusMsg = groupData.assistente
+        ? `✅ *Assistente ativada com sucesso!*\n\n` +
+        `🤖 *Personalidade atual:* ${
+          groupData.assistentePersonality === 'nazuna' ? 'Nazuna (Padrão)' :
+          groupData.assistentePersonality === 'humana' ? 'Humana' :
+          groupData.assistentePersonality === 'pro' ? 'Pro (Comandos)' :
+          'IA Normal'
+        }\n\n` +
+        `💡 *Trocar personalidade:*\n` +
+        `• ${prefix}assistente nazuna\n` +
+        `• ${prefix}assistente humana\n` +
+        `• ${prefix}assistente ia\n` +
+        `• ${prefix}assistente pro\n\n` +
+        `🧠 A IA aprende com base nos padrões de conversa.`
+        : `❌ *Assistente desativada!*`;
 
-          groupData.assistente = true;
-          groupData.assistentePersonality = personality;
-          fs.writeFileSync(groupFilePath, JSON.stringify(groupData, null, 2));
+      return reply(statusMsg);
+    }
 
-          const personalityNames = {
-            'nazuna': '🌙 *Nazuna* - Vampira moderna com personalidade tsundere',
-            'humana': '👤 *Humana* - Age como uma pessoa real, nunca admite ser IA',
-            'ia': '🤖 *IA Normal* - Assistente objetiva e direta',
-            'pro': '⚡ *Pro* - Interpreta comandos em linguagem natural (não responde, só executa)'
-          };
+    const personality = q.toLowerCase().trim();
 
-          reply(`✅ *Personalidade alterada!*\n\n` +
-            `${personalityNames[personality]}\n\n` +
-            `💬 A assistente agora responderá com essa personalidade.\n` +
-            `🧠 Cada personalidade mantém memórias separadas.`);
+    if (!['nazuna', 'humana', 'ia', 'pro'].includes(personality)) {
+      return reply(`❌ *Personalidade inválida!*\n\n` +
+        `Escolha uma das opções:\n` +
+        `• ${prefix}assistente nazuna\n` +
+        `• ${prefix}assistente humana\n` +
+        `• ${prefix}assistente ia\n` +
+        `• ${prefix}assistente pro`);
+    }
 
-        } catch (e) {
-          console.error(e);
-          reply("Ocorreu um erro 💔");
-        }
-        break;
+    groupData.assistente = true;
+    groupData.assistentePersonality = personality;
+    fs.writeFileSync(groupFilePath, JSON.stringify(groupData, null, 2));
+
+    const personalityNames = {
+      'nazuna': '🌙 *Nazuna* - Vampira tsundere',
+      'humana': '👤 *Humana* - Age como pessoa real',
+      'ia': '🤖 *IA Normal* - Direta e objetiva',
+      'pro': '⚡ *Pro* - Executa comandos'
+    };
+
+    reply(`✅ *Personalidade alterada!*\n\n` +
+      `${personalityNames[personality]}\n\n` +
+      `💬 A assistente agora responderá com essa personalidade.\n` +
+      `🧠 Memória separada por personalidade.`);
+
+  } catch (e) {
+    console.error(e);
+    reply("Ocorreu um erro 💔");
+  }
+  break;
       case 'antigore':
         try {
           if (!isGroup) return reply("isso so pode ser usado em grupo 💔");
