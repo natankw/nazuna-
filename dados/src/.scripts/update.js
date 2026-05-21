@@ -569,7 +569,7 @@ async function main() {
     await installDependencies(dependencyCheckResult);
     await cleanup();
     printMessage('🔄 Buscando informações do último commit...');
-    const response = await fetch('https://api.github.com/repos/devcrician/nazuna/commits?per_page=1', {
+    const response = await fetch(`https://api.github.com/repos/${config.autor}/nazuna/commits?per_page=1`, {
       headers: { Accept: 'application/vnd.github+json' },
     });
     if (!response.ok) {
