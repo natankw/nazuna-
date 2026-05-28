@@ -178,6 +178,13 @@ Agora, se o seu bot possui muitos grupos ou utiliza bastante comandos como:
 </details>
 
 <details>
+  <summary><strong>🔧 Como utilizar minha própria API no bot?</strong></summary>
+
+Nós não damos suporte a isso. O bot é um projeto open source e já vem integrado com a **Vex API** justamente para facilitar o uso dos usuários. Mas você pode colocar sua própria API no bot e usá-la perfeitamente.
+
+</details>
+
+<details>
   <summary><strong>🤝 Como contribuir?</strong></summary>
 
 Você pode abrir Pull Requests, Issues ou sugerir melhorias no repositório oficial.
@@ -240,6 +247,36 @@ npm start
 </p>
 
 </details>
+
+---
+
+# 💸 Vale a pena pagar a API?
+
+**Sim!** A Vex API é o que destrava o potencial completo da Nazuna. Sem ela, o bot já funciona muito bem — mas com ela, você tem acesso a uma série de comandos poderosos de download, edição de imagem, música e muito mais.
+
+Confira abaixo todos os comandos que dependem da Vex API:
+
+<div align="center">
+
+| Comando | Descrição |
+|---------|-----------|
+| 🎵 `play` | Baixa um áudio com informações de um vídeo do YouTube |
+| 🎬 `playvid` | Baixa um vídeo diretamente do YouTube |
+| 📱 `tiktok` | Baixa vídeos do TikTok sem marca d'água |
+| 📸 `instagram` | Baixa fotos e vídeos do Instagram |
+| 📘 `facebook` | Baixa vídeos do Facebook |
+| 🎞️ `kwai` | Baixa vídeos do Kwai |
+| 📌 `pinterest` | Baixa imagens e vídeos do Pinterest |
+| ✂️ `removebg` | Remove o fundo de uma imagem automaticamente |
+| 🖼️ `canvas de welcome` | Gera uma imagem de boas-vindas personalizada para o grupo |
+| 🎤 `letra` | Busca a letra de uma música |
+| 🟢 `spotify download` | Baixa músicas diretamente do Spotify |
+| 🅰️ `logos 1 texto` | Gera logos estilizadas com um texto |
+| 🅱️ `logos 2 textos` | Gera logos estilizadas com dois textos |
+
+</div>
+
+> Acesse [vexapi.com.br/plans](https://vexapi.com.br/plans) e escolha o plano ideal para o seu uso.
 
 ---
 
