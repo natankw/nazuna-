@@ -12,24 +12,24 @@
 <p align="center">
   <img src="https://img.shields.io/badge/STATUS-ATIVO-success?style=for-the-badge" alt="Status: Ativo" />
   
-  <img src="https://img.shields.io/badge/VERSÃO-v10.0.6-blue?style=for-the-badge" alt="Versão" />
+  <img src="https://img.shields.io/badge/VERSÃƒO-v10.0.6-blue?style=for-the-badge" alt="VersÃ£o" />
   
   <img src="https://img.shields.io/github/stars/DevTokyoVx/nazuna?style=for-the-badge&color=yellow&label=Estrelas" alt="Estrelas" />
   
   <img src="https://img.shields.io/github/forks/DevTokyoVx/nazuna?style=for-the-badge&color=blue&label=Forks" alt="Forks" />
 </p>
 
-<p align="center"><i>Projeto em desenvolvimento contínuo e ativo.</i></p>
+<p align="center"><i>Projeto em desenvolvimento contÃ­nuo e ativo.</i></p>
 
 ---
 
-## 📢 Continuidade do Projeto
+## ðŸ“¢ Continuidade do Projeto
 
 Este projeto foi **oficialmente descontinuado pelo criador original (hiudy)**.
 
-No entanto, o desenvolvimento não parou. O projeto foi assumido pelo dev **Tokyo**, que agora detém o controle e os direitos sobre o código, dando continuidade à Nazuna Bot.
+No entanto, o desenvolvimento nÃ£o parou. O projeto foi assumido pelo dev **Tokyo**, que agora detÃ©m o controle e os direitos sobre o cÃ³digo, dando continuidade Ã  Nazuna Bot.
 
-Atualmente, o bot segue em **desenvolvimento ativo**, recebendo atualizações, melhorias e correções, além de permanecer **open source para toda a comunidade**.
+Atualmente, o bot segue em **desenvolvimento ativo**, recebendo atualizaÃ§Ãµes, melhorias e correÃ§Ãµes, alÃ©m de permanecer **open source para toda a comunidade**.
 
 <p align="center">
   <a href="https://github.com/DevTokyoVx/nazuna">
@@ -37,204 +37,215 @@ Atualmente, o bot segue em **desenvolvimento ativo**, recebendo atualizações, 
   </a>
 </p>
 
-> A Nazuna continua viva 🚀 — agora com uma nova fase, novos updates e foco na comunidade.
+> A Nazuna continua viva ðŸš€ â€” agora com uma nova fase, novos updates e foco na comunidade.
 
 ---
 
-## 📊 O Legado em Números
+## ðŸ“Š O Legado em NÃºmeros
 
-<p align="center">Tudo que construímos juntos ao longo dessa jornada.</p>
+<p align="center">Tudo que construÃ­mos juntos ao longo dessa jornada.</p>
 
 <div align="center">
 
-| Métrica | Valor |
+| MÃ©trica | Valor |
 |---------|-------|
-| ⭐ Estrelas | ![Stars](https://img.shields.io/github/stars/DevTokyoVx/nazuna?style=flat-square&color=yellow) |
-| 🍴 Forks | ![Forks](https://img.shields.io/github/forks/DevTokyoVx/nazuna?style=flat-square&color=blue) |
-| 📝 Commits | ![Commits](https://img.shields.io/github/commit-activity/t/DevTokyoVx/nazuna?style=flat-square&color=purple) |
-| 💾 Tamanho do Repo | ![Size](https://img.shields.io/github/repo-size/DevTokyoVx/nazuna?style=flat-square&color=orange) |
-| 🐞 Issues Resolvidas | ![Closed Issues](https://img.shields.io/github/issues-closed/DevTokyoVx/nazuna?style=flat-square&color=red) |
-| 🔄 Pull Requests | ![PRs](https://img.shields.io/github/issues-pr-closed/DevTokyoVx/nazuna?style=flat-square&color=brightgreen) |
-| 🌐 Linguagem Principal | ![Language](https://img.shields.io/github/languages/top/DevTokyoVx/nazuna?style=flat-square&color=teal) |
-| 🕒 Primeiro Commit | ![Created](https://img.shields.io/github/created-at/DevTokyoVx/nazuna?style=flat-square&color=lightgrey) |
+| â­ Estrelas | ![Stars](https://img.shields.io/github/stars/DevTokyoVx/nazuna?style=flat-square&color=yellow) |
+| ðŸ´ Forks | ![Forks](https://img.shields.io/github/forks/DevTokyoVx/nazuna?style=flat-square&color=blue) |
+| ðŸ“ Commits | ![Commits](https://img.shields.io/github/commit-activity/t/DevTokyoVx/nazuna?style=flat-square&color=purple) |
+| ðŸ’¾ Tamanho do Repo | ![Size](https://img.shields.io/github/repo-size/DevTokyoVx/nazuna?style=flat-square&color=orange) |
+| ðŸž Issues Resolvidas | ![Closed Issues](https://img.shields.io/github/issues-closed/DevTokyoVx/nazuna?style=flat-square&color=red) |
+| ðŸ”„ Pull Requests | ![PRs](https://img.shields.io/github/issues-pr-closed/DevTokyoVx/nazuna?style=flat-square&color=brightgreen) |
+| ðŸŒ Linguagem Principal | ![Language](https://img.shields.io/github/languages/top/DevTokyoVx/nazuna?style=flat-square&color=teal) |
+| ðŸ•’ Primeiro Commit | ![Created](https://img.shields.io/github/created-at/DevTokyoVx/nazuna?style=flat-square&color=lightgrey) |
 
 </div>
 
 <p align="center">
   <img src="https://count.getloli.com/@nazuninha-bot?name=nazuninha-bot&theme=booru-lewd&padding=8&offset=0&align=top&scale=2&pixelated=1&darkmode=1" alt="Visitas" />
   <br/>
-  <sub>Total de visitas ao repositório</sub>
+  <sub>Total de visitas ao repositÃ³rio</sub>
 </p>
-
-
 
 ---
 
-# ❓ Perguntas Frequentes
+# â“ Perguntas Frequentes
 
 <details>
-  <summary><strong>💰 É pago?</strong></summary>
+  <summary><strong>ðŸ’° Ã‰ pago?</strong></summary>
 
-Não. A Nazuna Bot é totalmente gratuita e open source para a comunidade.
+NÃ£o. A Nazuna Bot Ã© totalmente gratuita e open source para a comunidade.
 
-Você paga pela API caso queira usar alguns outros comandos do bot
+VocÃª paga pela API caso queira usar alguns outros comandos do bot.
 </details>
 
 <details>
-  <summary><strong>🛠️ O projeto ainda recebe atualizações?</strong></summary>
+  <summary><strong>ðŸ› ï¸ O projeto ainda recebe atualizaÃ§Ãµes?</strong></summary>
 
-Sim. O projeto continua em desenvolvimento ativo sob manutenção do Tokyo.
+Sim. O projeto continua em desenvolvimento ativo sob manutenÃ§Ã£o do Tokyo.
 </details>
 
 <details>
-  <summary><strong>📱 Funciona em qualquer celular?</strong></summary>
+  <summary><strong>ðŸ“± Funciona em qualquer celular?</strong></summary>
 
-Sim, desde que o WhatsApp seja compatível com multi-dispositivos.
+Sim, desde que o WhatsApp seja compatÃ­vel com multi-dispositivos.
 </details>
 
 <details>
-  <summary><strong>☁️ Posso hospedar em VPS?</strong></summary>
+  <summary><strong>â˜ï¸ Posso hospedar em VPS?</strong></summary>
 
 Sim. A Nazuna funciona normalmente em VPS Linux, Pterodactyl e hospedagens Node.js.
 </details>
 
 <details>
-  <summary><strong>📦 O código é open source?</strong></summary>
+  <summary><strong>ðŸ“¦ O cÃ³digo Ã© open source?</strong></summary>
 
-Sim. Todo o código permanece aberto para estudos e contribuições.
+Sim. Todo o cÃ³digo permanece aberto para estudos e contribuiÃ§Ãµes.
 </details>
 
 <details>
-  <summary><strong>👤 Como virar dono do bot?</strong></summary>
+  <summary><strong>ðŸ‘¤ Como virar dono do bot?</strong></summary>
 
-1️⃣ ligue o bot e use o comando #lid (# = prefixo do bot)
+1ï¸âƒ£ Ligue o bot e use o comando `#lid` (# = prefixo do bot)
 
-2️⃣ acesse os arquivos do bot (dados/src/config.json)
+2ï¸âƒ£ Acesse os arquivos do bot em `dados/src/config.json`
 
-3️⃣ procure por "lidOwner": "278696501993618@lid"
+3ï¸âƒ£ Procure por `"lidOwner": "278696501993618@lid"`
 
-4️⃣ copie oque o bot te enviou ao usar o comando #lid
+4ï¸âƒ£ Copie o que o bot te enviou ao usar o comando `#lid`
 
-5️⃣ voltando ao arquivo do bot troquei o "278696501993618@lid" pelo oque o bot te enviou 
+5ï¸âƒ£ Voltando ao arquivo do bot, troque o `"278696501993618@lid"` pelo que o bot te enviou
 
-6️⃣ exemplo: "lidOwner": "848285828@lid"
+6ï¸âƒ£ Exemplo: `"lidOwner": "848285828@lid"`
 
-7️⃣ salva o arquivo, reinicie o bot e desfrute dos comandos de dono!
+7ï¸âƒ£ Salve o arquivo, reinicie o bot e desfrute dos comandos de dono!
 </details>
 
 <details>
-  <summary><strong>💸 Como ativar minha chave de api?</strong></summary>
-1️⃣ Acesse o site https://vexapi.com.br e crie sua conta
+  <summary><strong>ðŸ’¸ Como ativar minha chave de API?</strong></summary>
 
-2️⃣ Acesse a aba de planos https://vexapi.com.br/plans
+1ï¸âƒ£ Acesse o site https://vexapi.com.br e crie sua conta
 
-3️⃣ Escolha o plano ideal para você 
+2ï¸âƒ£ Acesse a aba de planos https://vexapi.com.br/plans
 
-4️⃣ Selecione o plano e efetue um pagamento 
+3ï¸âƒ£ Escolha o plano ideal para vocÃª
 
-5️⃣ Dentro de um minuto você vai receber a confirmação de ativação em seu email
+4ï¸âƒ£ Selecione o plano e efetue o pagamento
 
-6️⃣ Parabéns!Você ativou sua Api-key 
+5ï¸âƒ£ Dentro de um minuto vocÃª vai receber a confirmaÃ§Ã£o de ativaÃ§Ã£o no seu e-mail
+
+6ï¸âƒ£ ParabÃ©ns! VocÃª ativou sua API-key.
 </details>
 
 <details>
-  <summary><strong>🔑 Como configurar a API no bot?</strong></summary>
+  <summary><strong>ðŸ”‘ Como configurar a API no bot?</strong></summary>
 
-1️⃣ Acesse https://vexapi.com.br e certifique-se de ter uma conta
+1ï¸âƒ£ Acesse https://vexapi.com.br e certifique-se de ter uma conta
 
-2️⃣ No dashboard https://vexapi.com.br/docs copie sua API-key
+2ï¸âƒ£ No dashboard https://vexapi.com.br/docs, copie sua API-key
 
-3️⃣ Certifique-se de ter configurado o número do dono para o seu
+3ï¸âƒ£ Certifique-se de ter configurado o nÃºmero do dono para o seu
 
-4️⃣ Use o comando #apikey e insira a api-key que você copiou na frente do comando
+4ï¸âƒ£ Use o comando `#apikey` seguido da sua API-key:
 
-exemplo: #apikey asnfowiubvkawo
+```
+#apikey asnfowiubvkawo
+```
 
-5️⃣ Espere o bot reiniciar e desfrute dos comandos que necessitam de API!
+5ï¸âƒ£ Espere o bot reiniciar e desfrute dos comandos que necessitam de API!
 </details>
 
 <details>
-  <summary><strong>⌚ Como funcionam as requisições diárias da Vex API?</strong></summary>
+  <summary><strong>âŒš Como funcionam as requisiÃ§Ãµes diÃ¡rias da Vex API?</strong></summary>
 
-Diferente de muitas APIs, a Vex API foi pensada para oferecer uma experiência mais justa e confortável para o usuário.
+Diferente de muitas APIs, a Vex API foi pensada para oferecer uma experiÃªncia mais justa e confortÃ¡vel para o usuÃ¡rio.
 
-Exemplo: no plano de <strong>100 requisições diárias</strong>, você recebe <strong>100 usos novos todos os dias</strong> durante todo o período da assinatura.
+Exemplo: no plano de <strong>100 requisiÃ§Ãµes diÃ¡rias</strong>, vocÃª recebe <strong>100 usos novos todos os dias</strong> durante todo o perÃ­odo da assinatura.
 
-Isso significa que as requisições são renovadas diariamente, permitindo utilizar a API continuamente sem precisar esperar o mês acabar para recuperar o limite.
+Isso significa que as requisiÃ§Ãµes sÃ£o renovadas diariamente, permitindo utilizar a API continuamente sem precisar esperar o mÃªs acabar para recuperar o limite.
 
-Esse plano é ideal para bots menores, testes ou usuários que utilizam os recursos de forma moderada.
+Esse plano Ã© ideal para bots menores, testes ou usuÃ¡rios que utilizam os recursos de forma moderada.
 
 Agora, se o seu bot possui muitos grupos ou utiliza bastante comandos como:
 <ul>
-  <li>🎵 Play</li>
-  <li>📱 TikTok</li>
-  <li>📸 Instagram</li>
-  <li>🎬 Downloads em geral</li>
+  <li>ðŸŽµ Play</li>
+  <li>ðŸ“± TikTok</li>
+  <li>ðŸ“¸ Instagram</li>
+  <li>ðŸŽ¬ Downloads em geral</li>
 </ul>
 
-é recomendado utilizar planos com <strong>1000 requisições diárias ou superiores</strong>, garantindo mais estabilidade e evitando atingir o limite rapidamente.
+Ã© recomendado utilizar planos com <strong>1000 requisiÃ§Ãµes diÃ¡rias ou superiores</strong>, garantindo mais estabilidade e evitando atingir o limite rapidamente.
 
 </details>
-
 
 <details>
-  <summary><strong>🤝 Como contribuir?</strong></summary>
+  <summary><strong>ðŸ¤ Como contribuir?</strong></summary>
 
-Você pode abrir Pull Requests, Issues ou sugerir melhorias no repositório oficial.
+VocÃª pode abrir Pull Requests, Issues ou sugerir melhorias no repositÃ³rio oficial.
 </details>
-
-
 
 ---
-# ⚙️ Instalação no Termux
+
+# âš™ï¸ InstalaÃ§Ã£o no Termux
 
 <details>
-  <summary><strong>📱 Clique aqui para ver o passo a passo de instalação</strong></summary>
+  <summary><strong>ðŸ“± Clique aqui para ver o passo a passo de instalaÃ§Ã£o</strong></summary>
 
 <br>
 
-### 1️⃣ Entre na pasta `/sdcard`
+### 1ï¸âƒ£ Entre na pasta `/sdcard`
 > Recomendado caso queira editar os arquivos do bot facilmente.
 
 ```bash
 cd /sdcard
+```
 
 ---
 
-2️⃣ Clone o repositório oficial da Nazuna
+### 2ï¸âƒ£ Clone o repositÃ³rio oficial da Nazuna
 
+```bash
 git clone https://github.com/DevTokyoVx/nazuna
+```
 
 ---
 
-3️⃣ Entre na pasta do projeto
+### 3ï¸âƒ£ Entre na pasta do projeto
 
+```bash
 cd /sdcard/nazuna
+```
 
 ---
 
-4️⃣ Inicie o bot
+### 4ï¸âƒ£ Inicie o bot
 
-«As dependências serão instaladas automaticamente na primeira execução.»
+> As dependÃªncias serÃ£o instaladas automaticamente na primeira execuÃ§Ã£o.
 
+```bash
 npm start
+```
 
 ---
 
-5️⃣ Escolha a forma de conexão
+### 5ï¸âƒ£ Escolha a forma de conexÃ£o
 
+```
 01 - QR Code
 02 - Pairing Code
-
-<br><p align="center">
-  <sub>✅ Pronto! A Nazuna Bot foi instalada com sucesso.</sub>
-</p></details>
 ```
+
+<br>
+<p align="center">
+  <sub>âœ… Pronto! A Nazuna Bot foi instalada com sucesso.</sub>
+</p>
+
+</details>
+
 ---
 
-## 👥 Contribuidores
+## ðŸ‘¥ Contribuidores
 
-<p align="center">Essas são as pessoas que ajudaram na construção da Nazuna no passado.</p>
+<p align="center">Essas sÃ£o as pessoas que ajudaram na construÃ§Ã£o da Nazuna no passado.</p>
 
 <p align="center">
   <a href="https://github.com/DevTokyoVx/nazuna/graphs/contributors">
@@ -244,20 +255,20 @@ npm start
 
 ---
 
-## 💖 Agradecimento à Comunidade
+## ðŸ’– Agradecimento Ã  Comunidade
 
 <p align="center">
-  <img src="https://img.shields.io/badge/OBRIGADO-❤️-ff69b4?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/OBRIGADO-â¤ï¸-ff69b4?style=for-the-badge" />
 </p>
 
-A Nazuna teve início com o **Hiudy**, que criou a base do projeto e reuniu uma comunidade incrível ao redor dele.
+A Nazuna teve inÃ­cio com o **Hiudy**, que criou a base do projeto e reuniu uma comunidade incrÃ­vel ao redor dele.
 
-Atualmente, o projeto segue sob responsabilidade do **Tokyo**, que assumiu o controle e continua o desenvolvimento de forma independente, trazendo melhorias, correções e novas funcionalidades, mantendo tudo open source para a comunidade.
+Atualmente, o projeto segue sob responsabilidade do **Tokyo**, que assumiu o controle e continua o desenvolvimento de forma independente, trazendo melhorias, correÃ§Ãµes e novas funcionalidades, mantendo tudo open source para a comunidade.
 
-Aos antigos contribuidores: fica o reconhecimento por tudo que ajudaram a construir até aqui.
+Aos antigos contribuidores: fica o reconhecimento por tudo que ajudaram a construir atÃ© aqui.
 
-E para quem acompanha essa nova fase: **muito obrigado** por continuar apoiando o projeto. 🚀
+E para quem acompanha essa nova fase: **muito obrigado** por continuar apoiando o projeto. ðŸš€
 
 <p align="center">
-  <sub>Projeto original por <a href="https://github.com/hiudyy">Hiudy</a> • Atualmente mantido por Tokyo</sub>
+  <sub>Projeto original por <a href="https://github.com/hiudyy">Hiudy</a> â€¢ Atualmente mantido por Tokyo</sub>
 </p>
