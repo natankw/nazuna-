@@ -120,6 +120,8 @@ async function loadModules() {
         // --- utils (ESM via dynamic import) ---
         const [
             styleTextMod,
+            LogosMod,
+            LogosMod2,
             verifyUpdateMod,
             emojiMixMod,
             uploadMod,
@@ -147,6 +149,8 @@ async function loadModules() {
             freefireMod,
         ] = await Promise.all([
             import('./utils/gerarnick.js'),
+            import('./utils/logotipos.js'),
+            import('./utils/logotipos2.js'),
             import('./utils/update-verify.js'),
             import('./utils/emojimix.js'),
             import('./utils/upload.js'),
