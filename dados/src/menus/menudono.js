@@ -9,6 +9,7 @@ async function menuDono(prefix, botName = "MeuBot", userName = "Usuário", {
     botConfigMenuTitle = "🤖 CONFIGURAÇÕES DO BOT",
     menuDesignMenuTitle = "🎨 DESIGN & APARÊNCIA",
     automationMenuTitle = "⚙️ SISTEMA & AUTOMAÇÃO",
+   menuAssistenteMenuTitle = "🤡⚙️PERSONALIDADE DA ASSISTENTE",
     commandCustomMenuTitle = "🛠️ PERSONALIZAÇÃO DE COMANDOS",
     commandLimitingMenuTitle = "🚫 LIMITAÇÃO DE COMANDOS",
     userManagementMenuTitle = "👥 GERENCIAMENTO DE USUÁRIOS",
@@ -33,7 +34,6 @@ ${middleBorder}${menuItemIcon}${prefix}prefixo
 ${middleBorder}${menuItemIcon}${prefix}numerodono
 ${middleBorder}${menuItemIcon}${prefix}nomedono
 ${middleBorder}${menuItemIcon}${prefix}nomebot
-
 ${middleBorder}${menuItemIcon}${prefix}configcmdnotfound
 ${middleBorder}${menuItemIcon}${prefix}setcmdmsg
 ${middleBorder}${menuItemIcon}${prefix}fotobot
@@ -42,6 +42,13 @@ ${middleBorder}${menuItemIcon}${prefix}videomenu
 ${middleBorder}${menuItemIcon}${prefix}audiomenu
 ${middleBorder}${menuItemIcon}${prefix}lermais
 ${middleBorder}${menuItemIcon}${prefix}personalizargrupo
+${bottomBorder}
+
+${menuTopBorder}${separatorIcon} *${menuAssistenteMenuTitle}*
+${middleBorder}
+${middleBorder}${menuItemIcon}${prefix}setpersonalidade
+${middleBorder}${menuItemIcon}${prefix}criarpers
+${middleBorder}${menuItemIcon}${prefix}novapers
 ${bottomBorder}
 
 ${menuTopBorder}${separatorIcon} *${menuDesignMenuTitle}*

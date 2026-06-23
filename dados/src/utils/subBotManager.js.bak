@@ -117,30 +117,28 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
         });
 
         let pairingCode = null;
-if (
-generatePairingCode &&
-!state.creds.registered
-) {
 
-console.log(
-'[PAIRING] Número recebido:',
-phoneNumber
-)
+        if (generatePairingCode && !sock.authState.creds.registered) {
+            console.log(`⏳ Aguardando socket estabilizar para gerar código (${phoneNumber})...`);
+            await new Promise(resolve => setTimeout(resolve, 8000));
+            
+            try {
+                pairingCode = await sock.requestPairingCode(phoneNumber);
+                console.log(`🔑 Código gerado para ${phoneNumber}: ${pairingCode}`);
 
-await new Promise(
-r => setTimeout(r, 8000)
-)
+                const subbots = loadSubBots();
+                if (subbots[botId]) {
+                    subbots[botId].pairingCode = pairingCode;
+                    subbots[botId].status = 'aguardando_pareamento';
+                    subbots[botId].lastPairingRequest = new Date().toISOString();
+                    saveSubBots(subbots);
+                }
+            } catch (pairingError) {
+                console.error(`❌ Erro ao solicitar código:`, pairingError.message);
+                throw new Error(`Falha ao gerar código.`);
+            }
+        }
 
-pairingCode =
-await sock.requestPairingCode(
-phoneNumber
-)
-
-console.log(
-'[PAIRING] Código:',
-pairingCode
-)
-}
         sock.ev.on('creds.update', saveCreds);
 
         sock.ev.on('connection.update', async (update) => {

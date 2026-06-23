@@ -563,6 +563,8 @@ async function handleGroupParticipantsUpdate(NazunaSock, inf) {
         if (!groupMetadata) return;
 
         const groupSettings = await loadGroupSettings(from);
+        
+        
         const globalBlacklist = await loadGlobalBlacklist();
         const captchaData = await loadCaptchaJson();
 
@@ -577,8 +579,24 @@ async function handleGroupParticipantsUpdate(NazunaSock, inf) {
                 const membersToRemove = [];
                 const removalReasons = [];
 
-                const entradaPorLink = !inf.author || inf.participants.includes(inf.author);
+const entradaPorLink = !inf.author || inf.participants.includes(inf.author);
 
+// X9 aprovação de entrada
+if (groupSettings?.x9 && inf.author && !entradaPorLink) {
+
+    const autor = inf.author.split('@')[0];
+
+    for (const membro of inf.participants) {
+
+        const membroNum = membro.split('@')[0];
+
+        await NazunaSock.sendMessage(from, {
+            text: `✅ @${autor} aprovou a entrada de
+👤 @${membroNum}`,
+            mentions: [inf.author, membro]
+        }).catch(() => {});
+    }
+}
 
                 for (const participant of inf.participants) {
 
@@ -845,6 +863,32 @@ async function handleGroupJoinRequest(NazunaSock, inf) {
         }
 
         const groupSettings = await loadGroupSettings(from);
+        // X9 reprovação de solicitação
+if (
+    groupSettings?.x9 &&
+    (
+        inf.action === 'reject' ||
+        inf.action === 'rejected'
+    )
+) {
+
+    const autor = inf.author;
+
+    if (autor) {
+
+        const autorNum = autor.split('@')[0];
+        const membroNum = participantJid.split('@')[0];
+
+        await NazunaSock.sendMessage(from, {
+            text:
+`❌ @${autorNum} recusou a entrada de
+👤 @${membroNum}`,
+            mentions: [autor, participantJid]
+        }).catch(() => {});
+    }
+
+    return;
+}
 
 
         if (groupSettings.autoAcceptRequests) {

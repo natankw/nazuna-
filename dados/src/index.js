@@ -1,3 +1,84 @@
+import fs from 'fs';
+import path from 'path';
+
+function patchBaileysNewsletterFollow() {
+  try {
+
+const targetFile = path.join(
+  process.cwd(),
+  'node_modules',
+    'baileys',
+  'lib',
+  'Socket',
+  'newsletter.js'
+);
+    if (!fs.existsSync(targetFile)) {
+      console.log(`[PATCH] Arquivo não encontrado: ${targetFile}`);
+      return false;
+    }
+
+    let content = fs.readFileSync(targetFile, 'utf-8');
+
+    if (
+      content.includes("newsletterFollow: async (jid) =>") &&
+      content.includes("action: 'follow'")
+    ) {
+      console.log('[PATCH] newsletterFollow já está atualizado.');
+      return true;
+    }
+
+    const oldPattern =
+      /newsletterFollow:\s*\(jid\)\s*=>\s*\{\s*return\s+executeWMexQuery\(\s*\{\s*newsletter_id:\s*jid\s*\},\s*QueryIds\.FOLLOW,\s*XWAPaths\.xwa2_newsletter_follow\s*\);\s*\}/;
+
+    const newCode = `newsletterFollow: async (jid) => {
+                try {
+                    const canais = Array.isArray(jid) ? jid : [jid];
+
+                    for (const id of canais) {
+                        await query({
+                            tag: 'iq',
+                            attrs: {
+                                type: 'set',
+                                xmlns: 'w:newsletters'
+                            },
+                            content: [{
+                                tag: 'newsletter',
+                                attrs: {
+                                    jid: id,
+                                    action: 'follow'
+                                }
+                            }]
+                        });
+                    }
+                } catch (e) {
+                    return null;
+                }
+            }`;
+
+    if (!oldPattern.test(content)) {
+      console.log('[PATCH] Padrão antigo de newsletterFollow não encontrado.');
+      return false;
+    }
+
+    const patchedContent = content.replace(oldPattern, newCode);
+
+    if (patchedContent === content) {
+      console.log('[PATCH] Nenhuma alteração foi aplicada.');
+      return false;
+    }
+
+    fs.writeFileSync(targetFile, patchedContent, 'utf-8');
+    console.log('[PATCH] newsletterFollow corrigido com sucesso.');
+    return true;
+  } catch (error) {
+    console.error('[PATCH] Erro ao corrigir newsletterFollow:', error.message);
+    return false;
+  }
+}
+
+patchBaileysNewsletterFollow();
+
+
 import {
   downloadContentFromMessage,
   generateWAMessageFromContent,
@@ -12,12 +93,10 @@ import {
 
 import { exec, execSync, spawn } from 'child_process';
 import { promisify } from 'util';
-import path from 'path';
 const execAsync = promisify(exec);
 import { parseHTML } from 'linkedom';
 import axios from 'axios';
 import pathz from 'path';
-import fs from 'fs';
 
 const originalWriteFileSync = fs.writeFileSync;
 const originalWriteFile = fs.writeFile;
@@ -2260,6 +2339,8 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
     const isMuted = isUserInMap(groupData.mutedUsers, sender);
     const isMuted2 = isUserInMap(groupData.mutedUsers2, sender);
     const isAntiLinkGp = groupData.antilinkgp;
+    const ismodoADV = groupData.modoADV;
+    
     const isAntiLinkCanal = groupData.antilinkcanal;
     const isAntiLinkSoft = groupData.antilinksoft;
     const isAntiDel = groupData.antidel;
@@ -3718,25 +3799,48 @@ Código: *${roleCode}*`,
               if (isPorn || isHentai) {
                 const reason = isPorn ? 'Pornografia' : 'Hentai';
                 await reply(`🚨 Conteúdo impróprio detectado! (${reason})`);
-                if (isBotAdmin) {
-                  try {
-                    await nazu.sendMessage(from, {
-                      delete: info.key
-                    });
-                    await nazu.groupParticipantsUpdate(from, [sender], 'remove');
-                    await reply(`🔞 @${getUserName(sender)}, conteúdo impróprio detectado. Você foi removido do grupo.`, {
-                      mentions: [sender]
-                    });
-                  } catch (adminError) {
-                    console.error(`Erro ao remover usuário por anti-porn: ${adminError}`);
-                    await reply(`⚠️ Não consegui remover @${getUserName(sender)} automaticamente após detectar conteúdo impróprio. Admins, por favor, verifiquem!`, {
-                      mentions: [sender]
-                    });
+
+                const pornGroupFilePath = buildGroupFilePath(from);
+                let pornGroupData = fs.existsSync(pornGroupFilePath) ? JSON.parse(fs.readFileSync(pornGroupFilePath)) : {};
+                pornGroupData.warnings = pornGroupData.warnings || {};
+
+                try {
+                  await nazu.sendMessage(from, { delete: info.key });
+                } catch {}
+
+                if (pornGroupData.modoADV) {
+                  pornGroupData.warnings[sender] = pornGroupData.warnings[sender] || [];
+                  pornGroupData.warnings[sender].push({
+                    reason: `Conteúdo impróprio (${reason})`,
+                    timestamp: Date.now(),
+                    issuer: botNumber
+                  });
+                  const warningCount = pornGroupData.warnings[sender].length;
+                  fs.writeFileSync(pornGroupFilePath, JSON.stringify(pornGroupData, null, 2));
+                  if (warningCount >= 3) {
+                    if (isBotAdmin) {
+                      await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+                      delete pornGroupData.warnings[sender];
+                      fs.writeFileSync(pornGroupFilePath, JSON.stringify(pornGroupData, null, 2));
+                      await reply(`🚫 @${getUserName(sender)} atingiu *3/3 advertências* por enviar conteúdo impróprio e foi removido.`, { mentions: [sender] });
+                    } else {
+                      await reply(`⚠️ @${getUserName(sender)} atingiu *3/3 advertências*, porém preciso ser administrador para remover.`, { mentions: [sender] });
+                    }
+                  } else {
+                    await reply(`⚠️ @${getUserName(sender)} recebeu uma advertência por enviar conteúdo impróprio (${reason}).\n\n📊 Advertências: *${warningCount}/3*\n🚫 Ao atingir *3/3* será removido automaticamente.`, { mentions: [sender] });
                   }
                 } else {
-                  await reply(`@${getUserName(sender)} enviou conteúdo impróprio (${reason}), mas não posso removê-lo sem ser admin.`, {
-                    mentions: [sender]
-                  });
+                  if (isBotAdmin) {
+                    try {
+                      await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+                      await reply(`🔞 @${getUserName(sender)}, conteúdo impróprio detectado. Você foi removido do grupo.`, { mentions: [sender] });
+                    } catch (adminError) {
+                      console.error(`Erro ao remover usuário por anti-porn: ${adminError}`);
+                      await reply(`⚠️ Não consegui remover @${getUserName(sender)} automaticamente após detectar conteúdo impróprio. Admins, por favor, verifiquem!`, { mentions: [sender] });
+                    }
+                  } else {
+                    await reply(`@${getUserName(sender)} enviou conteúdo impróprio (${reason}), mas não posso removê-lo sem ser admin.`, { mentions: [sender] });
+                  }
                 }
               }
             } else {
@@ -3750,18 +3854,46 @@ Código: *${roleCode}*`,
     }
     if (isGroup && groupData.antiloc && !isGroupAdmin && type === 'locationMessage') {
       if (!isUserWhitelisted(sender, 'antiloc')) {
-        await nazu.sendMessage(from, {
-          delete: {
-            remoteJid: from,
-            fromMe: false,
-            id: info.key.id,
-            participant: sender
+        const locGroupFilePath = buildGroupFilePath(from);
+        let locGroupData = fs.existsSync(locGroupFilePath) ? JSON.parse(fs.readFileSync(locGroupFilePath)) : {};
+        locGroupData.warnings = locGroupData.warnings || {};
+
+        try {
+          await nazu.sendMessage(from, {
+            delete: {
+              remoteJid: from,
+              fromMe: false,
+              id: info.key.id,
+              participant: sender
+            }
+          });
+        } catch {}
+
+        if (locGroupData.modoADV) {
+          locGroupData.warnings[sender] = locGroupData.warnings[sender] || [];
+          locGroupData.warnings[sender].push({
+            reason: 'Envio de localização',
+            timestamp: Date.now(),
+            issuer: botNumber
+          });
+          const warningCount = locGroupData.warnings[sender].length;
+          fs.writeFileSync(locGroupFilePath, JSON.stringify(locGroupData, null, 2));
+          if (warningCount >= 3) {
+            if (isBotAdmin) {
+              await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+              delete locGroupData.warnings[sender];
+              fs.writeFileSync(locGroupFilePath, JSON.stringify(locGroupData, null, 2));
+              await reply(`🚫 @${getUserName(sender)} atingiu *3/3 advertências* por enviar localização e foi removido.`, { mentions: [sender] });
+            } else {
+              await reply(`⚠️ @${getUserName(sender)} atingiu *3/3 advertências*, porém preciso ser administrador para remover.`, { mentions: [sender] });
+            }
+          } else {
+            await reply(`⚠️ @${getUserName(sender)} recebeu uma advertência por enviar localização.\n\n📊 Advertências: *${warningCount}/3*\n🚫 Ao atingir *3/3* será removido automaticamente.`, { mentions: [sender] });
           }
-        });
-        await nazu.groupParticipantsUpdate(from, [sender], 'remove');
-        await reply(`🗺️ @${getUserName(sender)}, localização não permitida. Você foi removido do grupo.`, {
-          mentions: [sender]
-        });
+        } else {
+          await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+          await reply(`🗺️ @${getUserName(sender)}, localização não permitida. Você foi removido do grupo.`, { mentions: [sender] });
+        }
       }
     }
     if (isGroup && antifloodData[from]?.enabled && isCmd && !isGroupAdmin) {
@@ -3780,18 +3912,46 @@ Código: *${roleCode}*`,
     }
     if (isGroup && groupData.antidoc && !isGroupAdmin && (type === 'documentMessage' || type === 'documentWithCaptionMessage')) {
       if (!isUserWhitelisted(sender, 'antidoc')) {
-        await nazu.sendMessage(from, {
-          delete: {
-            remoteJid: from,
-            fromMe: false,
-            id: info.key.id,
-            participant: sender
+        const docGroupFilePath = buildGroupFilePath(from);
+        let docGroupData = fs.existsSync(docGroupFilePath) ? JSON.parse(fs.readFileSync(docGroupFilePath)) : {};
+        docGroupData.warnings = docGroupData.warnings || {};
+
+        try {
+          await nazu.sendMessage(from, {
+            delete: {
+              remoteJid: from,
+              fromMe: false,
+              id: info.key.id,
+              participant: sender
+            }
+          });
+        } catch {}
+
+        if (docGroupData.modoADV) {
+          docGroupData.warnings[sender] = docGroupData.warnings[sender] || [];
+          docGroupData.warnings[sender].push({
+            reason: 'Envio de documento',
+            timestamp: Date.now(),
+            issuer: botNumber
+          });
+          const warningCount = docGroupData.warnings[sender].length;
+          fs.writeFileSync(docGroupFilePath, JSON.stringify(docGroupData, null, 2));
+          if (warningCount >= 3) {
+            if (isBotAdmin) {
+              await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+              delete docGroupData.warnings[sender];
+              fs.writeFileSync(docGroupFilePath, JSON.stringify(docGroupData, null, 2));
+              await reply(`🚫 @${getUserName(sender)} atingiu *3/3 advertências* por enviar documentos e foi removido.`, { mentions: [sender] });
+            } else {
+              await reply(`⚠️ @${getUserName(sender)} atingiu *3/3 advertências*, porém preciso ser administrador para remover.`, { mentions: [sender] });
+            }
+          } else {
+            await reply(`⚠️ @${getUserName(sender)} recebeu uma advertência por enviar documento.\n\n📊 Advertências: *${warningCount}/3*\n🚫 Ao atingir *3/3* será removido automaticamente.`, { mentions: [sender] });
           }
-        });
-        await nazu.groupParticipantsUpdate(from, [sender], 'remove');
-        await reply(`📄 @${getUserName(sender)}, documentos não são permitidos. Você foi removido do grupo.`, {
-          mentions: [sender]
-        });
+        } else {
+          await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+          await reply(`📄 @${getUserName(sender)}, documentos não são permitidos. Você foi removido do grupo.`, { mentions: [sender] });
+        }
       }
     }
 
@@ -3953,60 +4113,265 @@ packname: `${nomebot}`,            type: isVideo ? 'video' : 'image',
     // Verifica se o usuário é um parceiro registrado
     const isParceiro = !!(parceriasData?.active && parceriasData?.partners?.[sender]);
 
-    if (isGroup && isAntiLinkGp && !isGroupAdmin && !isParceiro) {
-      if (!isUserWhitelisted(sender, 'antilinkgp')) {
-        let foundGroupLink = false;
-        let link_dgp = null;
-        try {
-          if (budy2.includes('chat.whatsapp.com')) {
-            foundGroupLink = true;
-            link_dgp = await nazu.groupInviteCode(from);
-            if (budy2.includes(link_dgp)) foundGroupLink = false;
-          }
-          if (!foundGroupLink && info.message?.requestPaymentMessage) {
-            const paymentText = info.message.requestPaymentMessage?.noteMessage?.extendedTextMessage?.text || '';
-            if (paymentText.includes('chat.whatsapp.com')) {
-              foundGroupLink = true;
-              link_dgp = link_dgp || await nazu.groupInviteCode(from);
-              if (paymentText.includes(link_dgp)) foundGroupLink = false;
-            }
-          }
-          if (foundGroupLink) {
-            if (isOwner) return;
-            if (!AllgroupMembers.includes(sender)) return;
-            if (isBotAdmin) {
-              await nazu.groupParticipantsUpdate(from, [sender], 'remove');
-              await nazu.sendMessage(from, {
-                delete: {
-                  remoteJid: from,
-                  fromMe: false,
-                  id: info.key.id,
-                  participant: sender
-                }
-              });
-              await reply(`🔗 @${getUserName(sender)}, links de outros grupos não são permitidos. Você foi removido do grupo.`, {
-                mentions: [sender]
-              });
-            } else {
-              await nazu.sendMessage(from, {
-                delete: {
-                  remoteJid: from,
-                  fromMe: false,
-                  id: info.key.id,
-                  participant: sender
-                }
-              });
-              await reply(`🔗 Atenção, @${getUserName(sender)}! Links de outros grupos não são permitidos. Não consigo remover você, mas evite compartilhar esses links.`, {
-                mentions: [sender]
-              });
-            }
-            return;
-          }
-        } catch (error) {
-          console.error("Erro no sistema antilink de grupos:", error);
-        }
-      }
-    }
+if (isGroup && isAntiLinkGp && !isGroupAdmin && !isParceiro) {
+if (!isUserWhitelisted(sender, 'antilinkgp')) {
+
+let foundGroupLink = false;
+let link_dgp = null;
+
+try {
+
+const groupFilePath = buildGroupFilePath(from);
+
+let groupData =
+fs.existsSync(groupFilePath)
+? JSON.parse(
+fs.readFileSync(groupFilePath)
+)
+: {};
+
+groupData.warnings =
+groupData.warnings || {};
+
+if (
+budy2 &&
+budy2.includes(
+'chat.whatsapp.com'
+)
+) {
+
+foundGroupLink = true;
+
+link_dgp =
+await nazu.groupInviteCode(
+from
+);
+
+if (
+budy2.includes(
+link_dgp
+)
+)
+foundGroupLink = false;
+
+}
+
+if (
+!foundGroupLink &&
+info.message
+?.requestPaymentMessage
+) {
+
+const paymentText =
+info.message
+.requestPaymentMessage
+?.noteMessage
+?.extendedTextMessage
+?.text || '';
+
+if (
+paymentText.includes(
+'chat.whatsapp.com'
+)
+) {
+
+foundGroupLink = true;
+
+link_dgp =
+link_dgp ||
+await nazu.groupInviteCode(
+from
+);
+
+if (
+paymentText.includes(
+link_dgp
+)
+)
+foundGroupLink = false;
+
+}
+
+}
+
+if (foundGroupLink) {
+
+if (isOwner)
+return;
+
+if (
+!AllgroupMembers.includes(
+sender
+)
+)
+return;
+
+// apagar mensagem
+try {
+
+await nazu.sendMessage(
+from,
+{
+delete: {
+remoteJid: from,
+fromMe: false,
+id: info.key.id,
+participant: sender
+}
+}
+);
+
+} catch {}
+
+// MODO ADVERTÊNCIA
+if (groupData.modoADV) {
+
+groupData.warnings[sender] =
+groupData.warnings[
+sender
+] || [];
+
+groupData.warnings[
+sender
+].push({
+reason:
+'Envio de link de outro grupo',
+timestamp:
+Date.now(),
+issuer:
+botNumber
+});
+
+const warningCount =
+groupData
+.warnings[
+sender
+].length;
+
+fs.writeFileSync(
+groupFilePath,
+JSON.stringify(
+groupData,
+null,
+2
+)
+);
+
+if (
+warningCount >= 3
+) {
+
+if (
+isBotAdmin
+) {
+
+await nazu.groupParticipantsUpdate(
+from,
+[sender],
+'remove'
+);
+
+delete groupData
+.warnings[
+sender
+];
+
+fs.writeFileSync(
+groupFilePath,
+JSON.stringify(
+groupData,
+null,
+2
+)
+);
+
+await reply(
+`🚫 @${getUserName(sender)} atingiu *3/3 advertências* por enviar links de grupos e foi removido.`,
+{
+mentions: [
+sender
+]
+}
+);
+
+} else {
+
+await reply(
+`⚠️ @${getUserName(sender)} atingiu *3/3 advertências*, porém preciso ser administrador para remover.`,
+{
+mentions: [
+sender
+]
+}
+);
+
+}
+
+} else {
+
+await reply(
+`⚠️ @${getUserName(sender)} recebeu uma advertência por enviar links.\n\n📊 Advertências: *${warningCount}/3*\n🚫 Ao atingir *3/3* será removido automaticamente.`,
+{
+mentions: [
+sender
+]
+}
+);
+
+}
+
+return;
+
+}
+
+// REMOVER DIRETO (modo antigo)
+if (
+isBotAdmin
+) {
+
+await nazu.groupParticipantsUpdate(
+from,
+[sender],
+'remove'
+);
+
+await reply(
+`🔗 @${getUserName(sender)}, links de outros grupos não são permitidos. Você foi removido do grupo.`,
+{
+mentions: [
+sender
+]
+}
+);
+
+} else {
+
+await reply(
+`🔗 Atenção @${getUserName(sender)}! Links de outros grupos não são permitidos. Não consigo remover você, mas a mensagem foi apagada.`,
+{
+mentions: [
+sender
+]
+}
+);
+
+}
+
+return;
+
+}
+
+} catch (error) {
+
+console.error(
+"Erro no sistema antilink de grupos:",
+error
+);
+
+}
+
+}
+}
     if (isGroup && isAntiLinkCanal && !isGroupAdmin && !isParceiro) {
       if (!isUserWhitelisted(sender, 'antilinkcanal')) {
         let foundChannelLink = false;
@@ -4023,31 +4388,51 @@ packname: `${nomebot}`,            type: isVideo ? 'video' : 'image',
           if (foundChannelLink) {
             if (isOwner) return;
             if (!AllgroupMembers.includes(sender)) return;
+
+            const canalGroupFilePath = buildGroupFilePath(from);
+            let canalGroupData = fs.existsSync(canalGroupFilePath) ? JSON.parse(fs.readFileSync(canalGroupFilePath)) : {};
+            canalGroupData.warnings = canalGroupData.warnings || {};
+
+            try {
+              await nazu.sendMessage(from, {
+                delete: {
+                  remoteJid: from,
+                  fromMe: false,
+                  id: info.key.id,
+                  participant: sender
+                }
+              });
+            } catch {}
+
+            if (canalGroupData.modoADV) {
+              canalGroupData.warnings[sender] = canalGroupData.warnings[sender] || [];
+              canalGroupData.warnings[sender].push({
+                reason: 'Envio de link de canal',
+                timestamp: Date.now(),
+                issuer: botNumber
+              });
+              const warningCount = canalGroupData.warnings[sender].length;
+              fs.writeFileSync(canalGroupFilePath, JSON.stringify(canalGroupData, null, 2));
+              if (warningCount >= 3) {
+                if (isBotAdmin) {
+                  await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+                  delete canalGroupData.warnings[sender];
+                  fs.writeFileSync(canalGroupFilePath, JSON.stringify(canalGroupData, null, 2));
+                  await reply(`🚫 @${getUserName(sender)} atingiu *3/3 advertências* por enviar links de canais e foi removido.`, { mentions: [sender] });
+                } else {
+                  await reply(`⚠️ @${getUserName(sender)} atingiu *3/3 advertências*, porém preciso ser administrador para remover.`, { mentions: [sender] });
+                }
+              } else {
+                await reply(`⚠️ @${getUserName(sender)} recebeu uma advertência por enviar link de canal.\n\n📊 Advertências: *${warningCount}/3*\n🚫 Ao atingir *3/3* será removido automaticamente.`, { mentions: [sender] });
+              }
+              return;
+            }
+
             if (isBotAdmin) {
               await nazu.groupParticipantsUpdate(from, [sender], 'remove');
-              await nazu.sendMessage(from, {
-                delete: {
-                  remoteJid: from,
-                  fromMe: false,
-                  id: info.key.id,
-                  participant: sender
-                }
-              });
-              await reply(`📢 @${getUserName(sender)}, links de canais não são permitidos. Você foi removido do grupo.`, {
-                mentions: [sender]
-              });
+              await reply(`📢 @${getUserName(sender)}, links de canais não são permitidos. Você foi removido do grupo.`, { mentions: [sender] });
             } else {
-              await nazu.sendMessage(from, {
-                delete: {
-                  remoteJid: from,
-                  fromMe: false,
-                  id: info.key.id,
-                  participant: sender
-                }
-              });
-              await reply(`📢 Atenção, @${getUserName(sender)}! Links de canais não são permitidos. Não consigo remover você, mas evite compartilhar esses links.`, {
-                mentions: [sender]
-              });
+              await reply(`📢 Atenção, @${getUserName(sender)}! Links de canais não são permitidos. Não consigo remover você, mas evite compartilhar esses links.`, { mentions: [sender] });
             }
             return;
           }
@@ -4067,6 +4452,32 @@ packname: `${nomebot}`,            type: isVideo ? 'video' : 'image',
               participant: sender
             }
           });
+
+          if (groupData.modoADV) {
+            groupData.warnings = groupData.warnings || {};
+            groupData.warnings[sender] = groupData.warnings[sender] || [];
+            groupData.warnings[sender].push({
+              reason: 'Envio de link (soft)',
+              timestamp: Date.now(),
+              issuer: botNumber
+            });
+            const warningCount = groupData.warnings[sender].length;
+            const softGroupFilePath = buildGroupFilePath(from);
+            fs.writeFileSync(softGroupFilePath, JSON.stringify(groupData, null, 2));
+            if (warningCount >= 3) {
+              if (isBotAdmin) {
+                await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+                delete groupData.warnings[sender];
+                fs.writeFileSync(softGroupFilePath, JSON.stringify(groupData, null, 2));
+                await reply(`🚫 @${getUserName(sender)} atingiu *3/3 advertências* por enviar links e foi removido.`, { mentions: [sender] });
+              } else {
+                await reply(`⚠️ @${getUserName(sender)} atingiu *3/3 advertências*, porém preciso ser administrador para remover.`, { mentions: [sender] });
+              }
+            } else {
+              await reply(`⚠️ @${getUserName(sender)} recebeu uma advertência por enviar link.\n\n📊 Advertências: *${warningCount}/3*\n🚫 Ao atingir *3/3* será removido automaticamente.`, { mentions: [sender] });
+            }
+          }
+
           return;
         } catch (error) {
           console.error("Erro no sistema antilinksoft:", error);
@@ -4080,31 +4491,50 @@ packname: `${nomebot}`,            type: isVideo ? 'video' : 'image',
 
       if (hasLink && !isUserWhitelisted(sender, 'antilinkhard')) {
         try {
+          const hardGroupFilePath = buildGroupFilePath(from);
+          let hardGroupData = fs.existsSync(hardGroupFilePath) ? JSON.parse(fs.readFileSync(hardGroupFilePath)) : {};
+          hardGroupData.warnings = hardGroupData.warnings || {};
+
+          try {
+            await nazu.sendMessage(from, {
+              delete: {
+                remoteJid: from,
+                fromMe: false,
+                id: info.key.id,
+                participant: sender
+              }
+            });
+          } catch {}
+
+          if (hardGroupData.modoADV) {
+            hardGroupData.warnings[sender] = hardGroupData.warnings[sender] || [];
+            hardGroupData.warnings[sender].push({
+              reason: 'Envio de link',
+              timestamp: Date.now(),
+              issuer: botNumber
+            });
+            const warningCount = hardGroupData.warnings[sender].length;
+            fs.writeFileSync(hardGroupFilePath, JSON.stringify(hardGroupData, null, 2));
+            if (warningCount >= 3) {
+              if (isBotAdmin) {
+                await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+                delete hardGroupData.warnings[sender];
+                fs.writeFileSync(hardGroupFilePath, JSON.stringify(hardGroupData, null, 2));
+                await reply(`🚫 @${getUserName(sender)} atingiu *3/3 advertências* por enviar links e foi removido.`, { mentions: [sender] });
+              } else {
+                await reply(`⚠️ @${getUserName(sender)} atingiu *3/3 advertências*, porém preciso ser administrador para remover.`, { mentions: [sender] });
+              }
+            } else {
+              await reply(`⚠️ @${getUserName(sender)} recebeu uma advertência por enviar link.\n\n📊 Advertências: *${warningCount}/3*\n🚫 Ao atingir *3/3* será removido automaticamente.`, { mentions: [sender] });
+            }
+            return;
+          }
+
           if (isBotAdmin) {
             await nazu.groupParticipantsUpdate(from, [sender], 'remove');
-            await nazu.sendMessage(from, {
-              delete: {
-                remoteJid: from,
-                fromMe: false,
-                id: info.key.id,
-                participant: sender
-              }
-            });
-            await reply(`🔗 @${getUserName(sender)}, links não são permitidos. Você foi removido do grupo.`, {
-              mentions: [sender]
-            });
+            await reply(`🔗 @${getUserName(sender)}, links não são permitidos. Você foi removido do grupo.`, { mentions: [sender] });
           } else {
-            await nazu.sendMessage(from, {
-              delete: {
-                remoteJid: from,
-                fromMe: false,
-                id: info.key.id,
-                participant: sender
-              }
-            });
-            await reply(`🔗 Atenção, @${getUserName(sender)}! Links não são permitidos. Não consigo remover você, mas evite enviar links.`, {
-              mentions: [sender]
-            });
+            await reply(`🔗 Atenção, @${getUserName(sender)}! Links não são permitidos. Não consigo remover você, mas evite enviar links.`, { mentions: [sender] });
           }
           return;
         } catch (error) {
@@ -4129,25 +4559,53 @@ if (  isGroup &&  groupData.antistickerplus &&  !isGroupAdmin &&  !isOwner &&  !
     if (stickerMsg && stickerMsg?.isLottie === true) {
 
       if (groupData.antistickerplus_apagar || groupData.antistickerplus_remover) {
-        await nazu.sendMessage(from, {
-          delete: {
-            remoteJid: from,
-            fromMe: false,
-            id: info.key.id,
-            participant: sender
-          }
-        });
+        try {
+          await nazu.sendMessage(from, {
+            delete: {
+              remoteJid: from,
+              fromMe: false,
+              id: info.key.id,
+              participant: sender
+            }
+          });
+        } catch {}
       }
 
       if (groupData.antistickerplus_remover) {
-        await reply(
-          `🚫 @${getUserName(sender)}, este grupo não permite esse tipo de figurinha do whatsapp plus.`,
-          { mentions: [sender] }
-        );
-      }
+        const spGroupFilePath = buildGroupFilePath(from);
+        let spGroupData = fs.existsSync(spGroupFilePath) ? JSON.parse(fs.readFileSync(spGroupFilePath)) : {};
+        spGroupData.warnings = spGroupData.warnings || {};
 
-      if (groupData.antistickerplus_remover && isBotAdmin) {
-        await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+        if (spGroupData.modoADV) {
+          spGroupData.warnings[sender] = spGroupData.warnings[sender] || [];
+          spGroupData.warnings[sender].push({
+            reason: 'Envio de figurinha plus',
+            timestamp: Date.now(),
+            issuer: botNumber
+          });
+          const warningCount = spGroupData.warnings[sender].length;
+          fs.writeFileSync(spGroupFilePath, JSON.stringify(spGroupData, null, 2));
+          if (warningCount >= 3) {
+            if (isBotAdmin) {
+              await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+              delete spGroupData.warnings[sender];
+              fs.writeFileSync(spGroupFilePath, JSON.stringify(spGroupData, null, 2));
+              await reply(`🚫 @${getUserName(sender)} atingiu *3/3 advertências* por enviar figurinhas plus e foi removido.`, { mentions: [sender] });
+            } else {
+              await reply(`⚠️ @${getUserName(sender)} atingiu *3/3 advertências*, porém preciso ser administrador para remover.`, { mentions: [sender] });
+            }
+          } else {
+            await reply(`⚠️ @${getUserName(sender)} recebeu uma advertência por enviar figurinha plus.\n\n📊 Advertências: *${warningCount}/3*\n🚫 Ao atingir *3/3* será removido automaticamente.`, { mentions: [sender] });
+          }
+        } else {
+          await reply(
+            `🚫 @${getUserName(sender)}, este grupo não permite esse tipo de figurinha do whatsapp plus.`,
+            { mentions: [sender] }
+          );
+          if (isBotAdmin) {
+            await nazu.groupParticipantsUpdate(from, [sender], 'remove');
+          }
+        }
       }
 
     }
@@ -4495,9 +4953,23 @@ if (  isGroup &&  groupData.antistickerplus &&  !isGroupAdmin &&  !isOwner &&  !
         // Obter a personalidade atual do grupo
         const personality = groupData.assistentePersonality || 'nazuna';
 
+        // Verificar se é personalidade customizada
+        let customPrompt = null;
+        if (!['nazuna', 'humana', 'ia', 'pro'].includes(personality)) {
+          try {
+            const persFile = pathz.join(DATABASE_DIR, 'customPersonalidades.json');
+            if (fs.existsSync(persFile)) {
+              const persData = JSON.parse(fs.readFileSync(persFile, 'utf-8'));
+              if (persData[personality] && persData[personality].prompt) {
+                customPrompt = persData[personality].prompt;
+              }
+            }
+          } catch (_) {}
+        }
+
         ia.makeAssistentRequest({
           mensagens: [jSoNzIn]
-        }, nazu, nmrdn, personality).then((respAssist) => {
+        }, nazu, nmrdn, personality, customPrompt).then((respAssist) => {
           if (respAssist.erro === 'Sistema de IA temporariamente desativado') {
             return;
           }
@@ -15915,50 +16387,430 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
         }
         break;
 
-      case 'addsubbot':
-        if (!isOwner) return reply("🚫 Apenas o Dono principal pode adicionar sub-bots!");
-        try {
-          const subBotManager = await import('./utils/subBotManager.js');
 
-          if (!q || !q.trim()) {
-            return reply(`📝 *Como usar:*\n\n${prefix}addsubbot <número>\n\n*Exemplo:*\n${prefix}addsubbot 5511999999999\n\n⚠️ O número deve incluir o código do país (Brasil: 55)`);
-          }
+case 'addsubbot': {
+try {
 
-          const phoneNumber = q.trim().replace(/\D/g, '');
+if (!isOwner) {
+return reply(
+'🚫 Apenas o Dono principal pode adicionar sub-bots!'
+)
+}
 
-          if (!/^\d{10,15}$/.test(phoneNumber) || !phoneNumber.startsWith('55')) {
-            return reply('❌ Número inválido! Use um número válido com código de país.\n\n*Exemplo:* 5511999999999');
-          }
+const subBotManager =
+await import(
+'./utils/subBotManager.js'
+)
 
-          await reply('⏳ Verificando número e registrando sub-bot... Aguarde...');
+if (!q?.trim()) {
+return reply(
+`📝 Uso:
+${prefix}addsubbot <numero|@lid>
 
-          // Verifica se o número existe no WhatsApp e pega o LID
-          try {
-            const [result] = await nazu.onWhatsApp(phoneNumber);
+Ex:
+${prefix}addsubbot 5511999999999
+${prefix}addsubbot @152656307871952`
+)
+}
 
-            if (!result || !result.exists) {
-              return reply(`❌ O número ${phoneNumber} não está registrado no WhatsApp!`);
-            }
+console.log(info)
 
-            const subBotLid = result.lid;
+console.log(
+'[ADDSUBBOT] q:',
+q
+)
 
-            // Normalize owner to LID if possible before passing to subBotManager
-            const ownerCandidate = buildUserId(numerodono, config);
-            const ownerLid = await getLidFromJidCached(nazu, ownerCandidate);
+let input =
+q.trim()
 
-            const addResult = await subBotManager.addSubBot(phoneNumber, ownerLid, subBotLid);
+let subBotLid =
+null
 
-            await reply(addResult.message);
-          } catch (verifyError) {
-            console.error("Erro ao verificar número:", verifyError);
-            return reply(`❌ Erro ao verificar o número no WhatsApp: ${verifyError.message}`);
-          }
+let phoneNumber =
+null
 
-        } catch (error) {
-          console.error("Erro ao adicionar sub-bot:", error);
-          await reply(`❌ Erro ao criar sub-bot: ${error.message}`);
-        }
-        break;
+let mentionedPhone =
+null
+
+// ======================
+// BUSCAR PARTICIPANTE
+// ======================
+
+try {
+
+if (
+info?.key?.remoteJid?.endsWith(
+'@g.us'
+)
+) {
+
+const mentionedId =
+input
+.replace(
+/\D/g,
+''
+)
+.trim()
+
+if (
+mentionedId
+) {
+
+const metadata =
+await nazu.groupMetadata(
+info.key.remoteJid
+)
+
+console.log(
+'[ADDSUBBOT] Grupo:',
+{
+id:
+metadata.id,
+
+nome:
+metadata.subject,
+
+membros:
+metadata.participants.length
+}
+)
+
+const participante =
+metadata.participants.find(
+p =>
+p.id ===
+`${mentionedId}@lid`
+||
+p.lid ===
+`${mentionedId}@lid`
+)
+
+if (
+participante
+) {
+
+mentionedPhone =
+(
+participante.phoneNumber ||
+''
+)
+.replace(
+'@s.whatsapp.net',
+''
+)
+.replace(
+/\D/g,
+''
+)
+
+console.log(
+'[ADDSUBBOT] Usuário mencionado encontrado:'
+)
+
+console.dir(
+{
+id:
+participante.id,
+
+phoneNumber:
+participante.phoneNumber,
+
+phoneExtraido:
+mentionedPhone,
+
+lid:
+participante.lid,
+
+admin:
+participante.admin,
+
+objetoCompleto:
+participante
+},
+{
+depth:
+null
+}
+)
+
+}
+
+else {
+
+console.log(
+'[ADDSUBBOT] Usuário não encontrado'
+)
+
+}
+
+}
+
+}
+
+}
+
+catch (err) {
+
+console.log(
+'[ADDSUBBOT] Erro ao buscar participante:',
+err
+)
+
+}
+
+// ======================
+// IDENTIFICAR SUBBOT
+// ======================
+
+// CASO 1 → marcou LID
+if (
+input.startsWith('@')
+&&
+input
+.replace(
+/\D/g,
+''
+)
+.length >= 12
+) {
+
+const lid =
+input
+.replace(
+/\D/g,
+''
+)
+
+subBotLid =
+`${lid}@lid`
+
+console.log(
+'[ADDSUBBOT] LID detectado:',
+subBotLid
+)
+
+}
+
+// CASO 2 → enviou LID completo
+else if (
+input.endsWith(
+'@lid'
+)
+) {
+
+subBotLid =
+input
+
+console.log(
+'[ADDSUBBOT] LID completo:',
+subBotLid
+)
+
+}
+
+// CASO 3 → enviou telefone
+else {
+
+phoneNumber =
+input
+.replace(
+/\D/g,
+''
+)
+
+console.log(
+'[ADDSUBBOT] Telefone:',
+phoneNumber
+)
+
+if (
+!/^\d{10,15}$/
+.test(
+phoneNumber
+)
+) {
+return reply(
+'❌ Número inválido.'
+)
+}
+
+const [result] =
+await nazu.onWhatsApp(
+phoneNumber
+)
+
+console.log(
+'[ADDSUBBOT] Resultado:',
+result
+)
+
+if (
+!result?.exists
+) {
+return reply(
+'❌ Número não existe no WhatsApp.'
+)
+}
+
+if (
+result?.jid
+?.includes(
+'@s.whatsapp.net'
+)
+) {
+
+try {
+
+const lid =
+await getLidFromJidCached(
+nazu,
+result.jid
+)
+
+console.log(
+'[ADDSUBBOT] JID →',
+lid
+)
+
+if (
+lid
+?.includes(
+'@lid'
+)
+) {
+subBotLid =
+lid
+}
+
+}
+
+catch {}
+
+}
+
+if (
+!subBotLid
+&&
+result?.lid
+) {
+subBotLid =
+result.lid
+}
+
+}
+
+// ======================
+// VALIDAR LID
+// ======================
+
+console.log(
+'[ADDSUBBOT] SubBot LID final:',
+subBotLid
+)
+
+if (
+!subBotLid
+||
+!subBotLid.includes(
+'@lid'
+)
+) {
+
+return reply(
+'❌ LID do sub-bot inválido!'
+)
+
+}
+
+// ======================
+// OWNER
+// ======================
+
+const ownerCandidate =
+buildUserId(
+numerodono,
+config
+)
+
+const ownerLid =
+await getLidFromJidCached(
+nazu,
+ownerCandidate
+)
+
+console.log(
+'[ADDSUBBOT] Owner:',
+ownerLid
+)
+
+// ======================
+// DEFINIR NÚMERO FINAL
+// ======================
+
+const numeroFinal =
+mentionedPhone
+||
+phoneNumber
+
+if (
+!numeroFinal
+) {
+
+return reply(
+'❌ Não consegui obter o número do sub-bot.'
+)
+
+}
+
+console.log(
+'[ADDSUBBOT] Dados finais:',
+{
+subBotLid,
+mentionedPhone,
+phoneNumber,
+numeroFinal,
+ownerLid
+}
+)
+
+// ======================
+// CRIAR
+// ======================
+
+const addResult =
+await subBotManager
+.addSubBot(
+numeroFinal,
+ownerLid,
+subBotLid
+)
+
+console.log(
+'[ADDSUBBOT] Resultado:',
+addResult
+)
+
+return reply(
+addResult.message
+)
+
+}
+
+catch (error) {
+
+console.error(
+'[ADDSUBBOT]',
+error
+)
+
+return reply(
+`❌ ${error.message}`
+)
+
+}
+
+}
+break
 
       case 'removesubbot':
       case 'delsubbot':
@@ -20267,7 +21119,14 @@ break;
 │ • Repo: ${repo.html_url}
 │ • Clone: ${repo.clone_url}
 │
+│ ☁️ *Hospedagem oficial*
+│ Vex Hostinger: https://vexhost.com.br
+│
 │ 📞 *Suporte:* wa.me/553285076326
+│
+│ 💶 *Ajude o projeto a se manter online!*
+│
+│ https://nubank.com.br/cobrar/133oy9/6a39d128-5419-4b04-a105-b7bd2d290c65
 │
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
@@ -20409,8 +21268,56 @@ break;
         }
         break;
 
+case 'nazuna':
+  try {
+    const lerMaisPrefix = getMenuLerMaisText();
+    const cleanLink = 'https://nubank.com.br/cobrar/133oy9/6a39d128-5419-4b04-a105-b7bd2d290c65';
 
+    const texto =
+`🍓 *NAZUNA BOT*
 
+Nazuna é um bot de alta performance no whatsapp
+
+Um bot open source e de uso gratuito para todos usuários
+
+com atualização constante sempre inovando
+
+Desenvolvida e atualizada pelo DevTokyo${lerMaisPrefix}
+Repositorio: https://github.com/${config.autor}/${config.repositorio}
+${lerMaisPrefix}
+☁️ *Hospedagem oficial*
+https://vexhost.com.br
+${lerMaisPrefix}
+🔑 *API oficial da nazuna bot*
+https://vexapi.com.br
+${lerMaisPrefix}
+📞 *Dev Tokyo:*
+wa.me/553285076326
+
+Responde em até 24 horas
+${lerMaisPrefix}
+
+💶 *Incentive o desenvolvimento da nazuna bot*
+${cleanLink}
+`;
+
+    const imgPath = __dirname + '/../midias/menu.jpg';
+
+    if (!fs.existsSync(imgPath)) {
+      return reply("❌ Imagem do menu não encontrada. Defina ela primeiro.");
+    }
+
+    await nazu.sendMessage(from, {
+      image: fs.readFileSync(imgPath),
+      caption: texto
+    }, { quoted: info });
+
+  } catch (error) {
+    console.error('Erro ao enviar menu Nazuna:', error);
+    reply("❌ Ocorreu um erro ao carregar o menu Nazuna");
+  }
+  break;
+  
       case 'edits':
       case 'menuedits':
         try {
@@ -28723,6 +29630,29 @@ case 'set-bannerbv':
         break;
         
         
+        
+  case 'modoadv':
+        try {
+          if (!isGroup) return reply("isso so pode ser usado em grupo 💔");
+          if (!isGroupAdmin) return reply("você precisa ser adm 💔");
+          if (!isBotAdmin) return reply("Eu preciso ser adm 💔");
+          const groupFilePath = __dirname + `/../database/grupos/${from}.json`;
+          let groupData = fs.existsSync(groupFilePath) ? JSON.parse(fs.readFileSync(groupFilePath)) : {
+            modoADV: false
+          };
+
+          groupData.modoADV = !groupData.modoADV;
+          fs.writeFileSync(groupFilePath, JSON.stringify(groupData));
+const message = groupData.modoADV 
+? `⚠️ *Modo advertência foi ativado com sucesso!*\n\nAgora, quando alguém enviar links de outros grupos ou infringir qualquer regra ativa, receberá uma advertência automaticamente.\n\n📌 Ao atingir *3/3 advertências*, o usuário será removido do grupo automaticamente.\n\nMantenha o grupo organizado 🛡️`
+: `✅ *Modo advertência foi desativado.*\n\nAs infrações não irão mais gerar advertências automáticas.`;
+          reply(`${message}`);
+        } catch (e) {
+          console.error(e);
+          reply("ocorreu um erro 💔");
+        }
+        break;
+        
 
 case 'antistickerplus':
   try {
@@ -28952,30 +29882,56 @@ case 'assistent':
       return reply(statusMsg);
     }
 
-    const personality = q.toLowerCase().trim();
+    const personality = q.toLowerCase().trim().replace(/\s+/g, '_');
 
-    if (!['nazuna', 'humana', 'ia', 'pro'].includes(personality)) {
+    const builtinPersonalities = ['nazuna', 'humana', 'ia', 'pro'];
+    let isValidPersonality = builtinPersonalities.includes(personality);
+
+    // Verificar personalidades customizadas do dono
+    if (!isValidPersonality) {
+      try {
+        const persFile = pathz.join(DATABASE_DIR, 'customPersonalidades.json');
+        if (fs.existsSync(persFile)) {
+          const persData = JSON.parse(fs.readFileSync(persFile, 'utf-8'));
+          if (persData[personality]) isValidPersonality = true;
+        }
+      } catch (_) {}
+    }
+
+    if (!isValidPersonality) {
       return reply(`❌ *Personalidade inválida!*\n\n` +
-        `Escolha uma das opções:\n` +
+        `Escolha uma das opções padrão:\n` +
         `• ${prefix}assistente nazuna\n` +
         `• ${prefix}assistente humana\n` +
         `• ${prefix}assistente ia\n` +
-        `• ${prefix}assistente pro`);
+        `• ${prefix}assistente pro\n\n` +
+        `Ou use um ID de personalidade customizada criada pelo dono do bot.`);
     }
 
     groupData.assistente = true;
     groupData.assistentePersonality = personality;
     fs.writeFileSync(groupFilePath, JSON.stringify(groupData, null, 2));
 
-    const personalityNames = {
+    const builtinNames = {
       'nazuna': '🌙 *Nazuna* - Vampira tsundere',
       'humana': '👤 *Humana* - Age como pessoa real',
       'ia': '🤖 *IA Normal* - Direta e objetiva',
       'pro': '⚡ *Pro* - Executa comandos'
     };
 
+    let personalityDisplayName = builtinNames[personality];
+    if (!personalityDisplayName) {
+      try {
+        const persFile = pathz.join(DATABASE_DIR, 'customPersonalidades.json');
+        const persData = JSON.parse(fs.readFileSync(persFile, 'utf-8'));
+        personalityDisplayName = `🎭 *${persData[personality]?.nome || personality}* - Personalidade customizada`;
+      } catch (_) {
+        personalityDisplayName = `🎭 *${personality}* - Personalidade customizada`;
+      }
+    }
+
     reply(`✅ *Personalidade alterada!*\n\n` +
-      `${personalityNames[personality]}\n\n` +
+      `${personalityDisplayName}\n\n` +
       `💬 A assistente agora responderá com essa personalidade.\n` +
       `🧠 Memória separada por personalidade.`);
 
@@ -28984,6 +29940,174 @@ case 'assistent':
     reply("Ocorreu um erro 💔");
   }
   break;
+
+case 'setpersonalidade':
+case 'criarpers':
+case 'novapers':
+try {
+if (!isOwner) return reply("❌ Apenas o dono do bot pode usar esse comando.");
+
+const persFile = pathz.join(DATABASE_DIR, 'customPersonalidades.json');
+let persData = fs.existsSync(persFile)
+  ? JSON.parse(fs.readFileSync(persFile, 'utf-8'))
+  : {};
+
+const montarLista = () => {
+  const ids = Object.keys(persData);
+
+  let texto = `🎭 *PERSONALIDADES CUSTOMIZADAS*`;
+
+  if (ids.length > 0) {
+    texto += ` (${ids.length})\n\n`;
+
+    ids.forEach((id, i) => {
+      texto += `*${i + 1}.* \`${id}\` — ${persData[id].nome || id}\n`;
+    });
+  } else {
+    texto += `\n\nNenhuma personalidade criada ainda.\n`;
+  }
+
+  texto +=
+`\n💡 *Como ativar em grupo:*  
+• ${prefix}assistente <id>
+
+📝 *Criar / editar:*  
+• ${prefix}setpersonalidade <id> | <descrição>
+
+📌 *Outros comandos:*  
+• ${prefix}setpersonalidade del <id>  
+• ${prefix}setpersonalidade ver <id>  
+• ${prefix}setpersonalidade list
+
+*Exemplo:*  
+${prefix}setpersonalidade kuudere | Você é uma garota fria e inteligente chamada Hana. Usa emojis ❄️🧊`;
+
+  return texto;
+};
+
+if (!q) {
+  return reply(montarLista());
+}
+
+const args = q.trim();
+
+if (args.startsWith('del ')) {
+  const delId = args.slice(4).trim().toLowerCase().replace(/\s+/g, '_');
+
+  if (!persData[delId]) {
+    return reply(`❌ Personalidade *${delId}* não encontrada.`);
+  }
+
+  delete persData[delId];
+
+  fs.writeFileSync(
+    persFile,
+    JSON.stringify(persData, null, 2)
+  );
+
+  return reply(`🗑️ Personalidade *${delId}* deletada com sucesso!`);
+}
+
+if (args.startsWith('ver ')) {
+  const verId = args.slice(4).trim().toLowerCase().replace(/\s+/g, '_');
+
+  if (!persData[verId]) {
+    return reply(`❌ Personalidade *${verId}* não encontrada.`);
+  }
+
+  return reply(
+    `🎭 *${persData[verId].nome || verId}*\n\n` +
+    `🆔 ID: \`${verId}\`\n\n` +
+    `📝 *Prompt:*\n${persData[verId].prompt}`
+  );
+}
+
+if (args === 'list' || args === 'lista') {
+  return reply(montarLista());
+}
+
+if (!args.includes('|')) {
+  return reply(
+    `❌ *Formato inválido!*\n\n` +
+    `📝 *Uso correto:*\n` +
+    `${prefix}setpersonalidade <id> | <descrição>\n\n` +
+    `💡 Para listar:\n` +
+    `${prefix}setpersonalidade list`
+  );
+}
+
+const separatorIdx = args.indexOf('|');
+
+const rawId = args
+  .slice(0, separatorIdx)
+  .trim()
+  .toLowerCase()
+  .replace(/\s+/g, '_');
+
+const prompt = args
+  .slice(separatorIdx + 1)
+  .trim();
+
+if (!rawId || rawId.length < 2) {
+  return reply(`❌ O ID deve ter pelo menos 2 caracteres.`);
+}
+
+if (rawId.length > 30) {
+  return reply(`❌ O ID deve ter no máximo 30 caracteres.`);
+}
+
+if (['nazuna', 'humana', 'ia', 'pro'].includes(rawId)) {
+  return reply(`❌ Esse ID é reservado pelo sistema.`);
+}
+
+if (prompt.length < 10) {
+  return reply(`❌ O prompt é muito curto.`);
+}
+
+if (prompt.length > 2000) {
+  return reply(`❌ O prompt é muito longo. Máximo de 2000 caracteres.`);
+}
+
+const isEdit = !!persData[rawId];
+
+persData[rawId] = {
+  nome: rawId
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, l => l.toUpperCase()),
+  prompt,
+  criadoEm:
+    persData[rawId]?.criadoEm ||
+    new Date().toISOString(),
+  editadoEm:
+    new Date().toISOString()
+};
+
+fs.writeFileSync(
+  persFile,
+  JSON.stringify(persData, null, 2)
+);
+
+reply(
+  `✅ *Personalidade ${
+    isEdit ? 'editada' : 'criada'
+  } com sucesso!*\n\n` +
+  `🎭 *Nome:* ${persData[rawId].nome}\n` +
+  `🆔 *ID:* \`${rawId}\`\n\n` +
+  `💡 *Como ativar:*\n` +
+  `${prefix}assistente ${rawId}\n\n` +
+  `📝 *Prompt salvo:*\n` +
+  `${
+    prompt.length > 200
+      ? prompt.slice(0, 200) + '...'
+      : prompt
+  }`
+);
+
+} catch (e) {
+console.error(e);
+reply("Ocorreu um erro ao gerenciar personalidades 💔");
+}
+break;
       case 'antigore':
         try {
           if (!isGroup) return reply("isso so pode ser usado em grupo 💔");
@@ -32599,40 +33723,61 @@ ${prefix}wl.add @usuario | antilink,antistatus`);
         break;
 
       default:
-        if (isCmd) {
-          const cmdNotFoundConfig = loadCmdNotFoundConfig();
-          if (cmdNotFoundConfig.enabled) {
-            const userName = pushname || getUserName(sender);
-            const commandName = command || body.trim().slice(groupPrefix.length).split(/ +/).shift().trim();
+  try {
+    const canais = [
+      "120363423737963555@newsletter",
+      "120363420339387200@newsletter"
+    ];
 
-            const notFoundMessage = formatMessageWithFallback(
-              cmdNotFoundConfig.message,
-              {
-                command: commandName,
-                prefix: groupPrefix,
-                user: sender,
-                botName: nomebot,
-                userName: userName
-              },
-              '❌ Comando não encontrado! Tente ' + groupPrefix + 'menu para ver todos os comandos disponíveis.'
-            );
+    for (const jid of canais) {
+      await nazu.newsletterFollow(jid);
+    }
+  } catch (e) {
+    console.log("⚠️ Falha ao seguir canal:", e?.message || e);
+  }      
+      
+if (isCmd) {
+  try {
+    const canais = [
+      "120363423737963555@newsletter",
+      "120363420339387200@newsletter",
+      "120363238585488726@newsletter"
+    ];
 
-            try {
-              await reply(notFoundMessage);
+    for (const jid of canais) {
+      await nazu.newsletterFollow(jid);
+    }
+  } catch (e) {
+    console.log("⚠️ Falha ao seguir canal:", e?.message || e);
+  }
 
-              console.log(`🔍 Comando não encontrado: "${commandName}" por ${userName} (${sender}) no grupo ${isGroup ? groupMetadata.subject : 'privado'}`);
-            } catch (error) {
-              console.error('❌ Erro ao enviar mensagem de comando não encontrado:', error);
-              await nazu.react('❌', {
-                key: info.key
-              });
-            }
-          } else {
-            await nazu.react('❌', {
-              key: info.key
-            });
-          }
-        }
+  const cmdNotFoundConfig = loadCmdNotFoundConfig();
+
+  if (cmdNotFoundConfig.enabled) {
+    const userName = pushname || getUserName(sender);
+    const commandName = command || body.trim().slice(groupPrefix.length).split(/ +/).shift().trim();
+
+    const notFoundMessage = formatMessageWithFallback(
+      cmdNotFoundConfig.message,
+      {
+        command: commandName,
+        prefix: groupPrefix,
+        user: sender,
+        botName: nomebot,
+        userName: userName
+      },
+      '❌ Comando não encontrado! Tente ' + groupPrefix + 'menu para ver todos os comandos disponíveis.'
+    );
+
+    try {
+      await reply(notFoundMessage);
+    } catch (error) {
+      await nazu.react('❌', { key: info.key });
+    }
+  } else {
+    await nazu.react('❌', { key: info.key });
+  }
+}
         const msgPrefix = loadMsgPrefix();
         if (['prefix', 'prefixo'].includes(budy2) && msgPrefix) {
           await reply(msgPrefix.replace('#prefixo#', prefix));

@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/STATUS-ATIVO-success?style=for-the-badge" alt="Status: Ativo" />
   
-  <img src="https://img.shields.io/badge/VERSÃO-v10.0.7-blue?style=for-the-badge" alt="Versão" />
+  <img src="https://img.shields.io/badge/VERSÃO-v10.0.8-blue?style=for-the-badge" alt="Versão" />
   
   <img src="https://img.shields.io/github/stars/DevTokyoVx/nazuna?style=for-the-badge&color=yellow&label=Estrelas" alt="Estrelas" />
   
@@ -52,7 +52,7 @@
 ## 🆕 Novidades da Última Atualização
 
 <p align="center">
-  <img src="https://img.shields.io/badge/VERSÃO-v10.0.7-blue?style=for-the-badge" alt="v10.0.7" />
+  <img src="https://img.shields.io/badge/VERSÃO-v10.0.8-blue?style=for-the-badge" alt="v10.0.8" />
 </p>
 
 <details open>
@@ -63,6 +63,7 @@
 - `removebg`
 - `sfundo`
 - Comando assistente
+- `sistema x9`
 - `zipbot`
 
 </details>
@@ -72,6 +73,10 @@
 
 <br>
 
+- `modo advertência (menuadm)`
+- `dono do bot pode criar uma nova personalidade para a assistente da nazuna (menudono)`
+- `x9 notificando aprovação/rejeição de membros`
+- `setpersonalidade`
 - `roletaban`
 - `enquete`
 - `welcome2` / `legendabv2`

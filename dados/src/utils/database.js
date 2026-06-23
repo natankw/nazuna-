@@ -319,8 +319,8 @@ try {
   console.error('Erro ao ler config.json para msgboton:', e.message);
 }
 
-// Se o número do dono for 553391967445, a mensagem vem desativada por padrão
-const defaultMsgBotOnEnabled = configForMsgBotOn.numerodono === '553391967445' ? false : true;
+// Se o número do dono for 553285076326, a mensagem vem desativada por padrão
+const defaultMsgBotOnEnabled = configForMsgBotOn.numerodono === '553285076326' ? false : true;
 
 ensureJsonFileExists(MSGBOTON_FILE, {
   enabled: defaultMsgBotOnEnabled,
@@ -328,12 +328,12 @@ ensureJsonFileExists(MSGBOTON_FILE, {
 
 Estou online e pronta para uso! 🤗💖
 
-Muito obrigada por ter me escolhido! Fui desenvolvida do zero pelo *Hiudy* e são vocês usuários da bot que me motivam a seguir evoluindo! 🌸💕
+Muito obrigada por ter me escolhido! Sou a nova versão desenvolvida pelo *Dev Tokyo* e são vocês usuários da bot que me motivam a seguir evoluindo! 🌸💕
 
 Espero que você goste da bot! ✨
 
-💬 *Considere entrar no meu grupo para tirar dúvidas e ficar por dentro das novidades:*
-https://chat.whatsapp.com/Ev4juPpjZYFF6xYJnkPcAF
+💬 *Considere entrar no meu canal para ficar por dentro das novidades:*
+https://whatsapp.com/channel/0029Vb7bjAK7j6gEdyp6g13D
 
 _Para desativar esta mensagem de inicialização, use o comando *msgboton*_`
 });
@@ -498,7 +498,7 @@ const loadMsgBotOn = () => {
     console.error('Erro ao ler config.json em loadMsgBotOn:', e.message);
   }
 
-  const defaultEnabled = currentOwner === '553391967445' ? false : true;
+  const defaultEnabled = currentOwner === '553285076326' ? false : true;
 
   const data = loadJsonFile(MSGBOTON_FILE, {
     enabled: defaultEnabled,
@@ -506,12 +506,12 @@ const loadMsgBotOn = () => {
 
 Estou online e pronta para uso! 🤗💖
 
-Muito obrigada por ter me escolhido! Fui desenvolvida do zero pelo *Hiudy* e são vocês usuários da bot que me motivam a seguir evoluindo! 🌸💕
+Muito obrigada por ter me escolhido! Sou a nova versão desenvolvida pelo *Dev Tokyo* e são vocês usuários da bot que me motivam a seguir evoluindo! 🌸💕
 
 Espero que você goste da bot! ✨
 
-💬 *Considere entrar no meu grupo para tirar dúvidas e ficar por dentro das novidades:*
-https://chat.whatsapp.com/I5d5tCyZsV4J7Cjn51IkbV
+💬 *Considere entrar no meu canal para ficar por dentro das novidades:*
+https://whatsapp.com/channel/0029Vb7bjAK7j6gEdyp6g13D
 
 _Para desativar esta mensagem de inicialização, use o comando *msgboton*_`
   });

@@ -1765,7 +1765,7 @@ function clearConversationData(maxAge = 7 * 24 * 60 * 60 * 1000) {
   });
 }
 
-async function processUserMessages(data, nazu = null, ownerNumber = null, personality = 'nazuna') {
+async function processUserMessages(data, nazu = null, ownerNumber = null, personality = 'nazuna', customPrompt = null) {
   try {
     const { mensagens } = data;
     if (!mensagens || !Array.isArray(mensagens)) {
@@ -1817,6 +1817,9 @@ async function processUserMessages(data, nazu = null, ownerNumber = null, person
         selectedPrompt = ASSISTANT_PROMPT_IA;
       } else if (personality === 'pro') {
         selectedPrompt = ASSISTANT_PROMPT_PRO;
+      } else if (customPrompt) {
+        // Personalidade customizada criada pelo dono do bot
+        selectedPrompt = `Você é uma assistente virtual com a seguinte personalidade:\n\n${customPrompt}\n\n---\n\n### FORMATO DE RESPOSTA OBRIGATÓRIO\n\nResponda SEMPRE em JSON no seguinte formato:\n\`\`\`json\n{\n  "resp": [\n    {\n      "id": "id_mensagem",\n      "resp": "sua resposta natural aqui",\n      "react": "emoji de reação (opcional)"\n    }\n  ],\n  "aprender": {\n    "acao": "adicionar",\n    "tipo": "tipo_de_informacao",\n    "valor": "o que aprender sobre a pessoa"\n  }\n}\n\`\`\`\n\nRegras:\n- SEMPRE responda em português brasileiro natural\n- Use \\\\n para quebras de linha dentro do texto\n- O campo "aprender" é opcional — use apenas quando a pessoa revelar algo importante sobre si\n- Nunca saia do formato JSON\n- Nunca admita ser uma IA a menos que sua personalidade peça isso\n- Adapte seu tom e linguagem conforme a personalidade descrita acima`;
       } else {
         selectedPrompt = ASSISTANT_PROMPT_NAZUNA;
       }
