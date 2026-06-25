@@ -98,6 +98,8 @@
 - `menulogos` — agora com logos de 2 textos usando a Vex API
 
 </details>
+
+---
 ## 📢 Continuidade do Projeto
 
 Este projeto foi **oficialmente descontinuado pelo criador original (hiudy)**.
