@@ -23,7 +23,9 @@ const DIVULGACAO_FILE = path.join(DONO_DIR, 'divulgacao.json');
 const DONO_DIVULGACAO_FILE = path.join(DONO_DIR, 'divulgacao_dono.json');
 const NO_PREFIX_COMMANDS_FILE = path.join(DATABASE_DIR, 'noPrefixCommands.json');
 const COMMAND_ALIASES_FILE = path.join(DATABASE_DIR, 'commandAliases.json');
-const GLOBAL_BLACKLIST_FILE = path.join(DONO_DIR, 'globalBlacklist.json');
+const GLOBAL_BLACKLIST_FILE = path.join(DONO_DIR, 'global.json');
+const GLOBAL_SETTINGS_FILE = path.join(DONO_DIR, 'globalBlacklist.json');
+
 const MENU_DESIGN_FILE = path.join(DONO_DIR, 'menuDesign.json');
 const ECONOMY_FILE = path.join(DATABASE_DIR, 'economy.json');
 const MSGPREFIX_FILE = path.join(DONO_DIR, 'msgprefix.json');
@@ -75,6 +77,7 @@ export {
   NO_PREFIX_COMMANDS_FILE,
   COMMAND_ALIASES_FILE,
   GLOBAL_BLACKLIST_FILE,
+  GLOBAL_SETTINGS_FILE
   MENU_DESIGN_FILE,
   ECONOMY_FILE,
   MSGPREFIX_FILE,

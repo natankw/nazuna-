@@ -18,6 +18,7 @@ import {
   NO_PREFIX_COMMANDS_FILE,
   COMMAND_ALIASES_FILE,
   GLOBAL_BLACKLIST_FILE,
+  GLOBAL_SETTINGS_FILE
   MENU_DESIGN_FILE,
   ECONOMY_FILE,
   MSGPREFIX_FILE,
@@ -100,6 +101,18 @@ ensureJsonFileExists(GLOBAL_BLACKLIST_FILE, {
   users: {},
   groups: {}
 });
+
+ensureJsonFileExists(GLOBAL_SETTINGS_FILE, {
+  user: {
+    profilePicture: "https://i.pinimg.com/1200x/97/e9/37/97e93701392a53ae68113b48e1a8956b.jpg"
+  },
+  welcomecard: {
+    fundo: "https://i.pinimg.com/1200x/03/a0/6f/03a06fc163ae2eab7cee95bd77ff1119.jpg",
+    corMoldura: "black",
+    corLinhas: "white"
+  }
+});
+
 ensureJsonFileExists(DONO_DIVULGACAO_FILE, {
   groups: [],
   message: '',
