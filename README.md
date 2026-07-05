@@ -427,7 +427,11 @@ Nenhuma hospedagem, além da **[Vex Hostinger](https://vexhost.com.br)**, tem pe
 > ✅ Fazer o **upload manual** da Nazuna em qualquer hospedagem para uso pessoal é **permitido**.
 
 ### 🔄 Atualizações Oficiais
-Você **não pode** sair atualizando o bot e divulgando as atualizações na nossa comunidade ou em qualquer outra. Você pode abrir **Pull Requests** e dar sugestões livremente — mas somente o **DevTokyo** pode disponibilizar atualizações oficiais para todos.
+Você pode clonar o repositório e modificar o projeto livremente, criando sua própria versão da Nazuna Bot como quiser.
+
+No entanto, essas modificações não devem ser divulgadas como uma versão oficial do projeto Nazuna, nem associadas ao repositório original, para evitar confusões ou mal-entendidos na comunidade.
+
+O repositório oficial da Nazuna Bot é mantido exclusivamente pelo DevTokyo, e apenas ele é responsável pelas versões oficiais e atualizações públicas do projeto.
 
 ### ⚠️ Isenção de Responsabilidade
 Não nos responsabilizamos caso seu número seja **banido do WhatsApp**. O WhatsApp está em constante atualização e proíbe cada vez mais o uso de bots em sua plataforma. Use com consciência e por sua conta e risco.
