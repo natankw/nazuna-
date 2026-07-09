@@ -1,0 +1,96 @@
+{
+  "commands": {
+    "menu": {
+      "count": 10,
+      "users": {
+        "101657815871606@lid": 10
+      },
+      "lastUsed": "2026-07-08T14:39:38.764Z"
+    },
+    "prefixo": {
+      "count": 1,
+      "users": {
+        "101657815871606@lid": 1
+      },
+      "lastUsed": "2026-07-08T13:34:47.663Z"
+    },
+    "menufig": {
+      "count": 2,
+      "users": {
+        "101657815871606@lid": 2
+      },
+      "lastUsed": "2026-07-08T14:27:44.531Z"
+    },
+    "menudono": {
+      "count": 2,
+      "users": {
+        "101657815871606@lid": 2
+      },
+      "lastUsed": "2026-07-08T14:30:48.631Z"
+    },
+    "setheader": {
+      "count": 1,
+      "users": {
+        "101657815871606@lid": 1
+      },
+      "lastUsed": "2026-07-08T14:19:39.935Z"
+    },
+    "setbordafim": {
+      "count": 1,
+      "users": {
+        "101657815871606@lid": 1
+      },
+      "lastUsed": "2026-07-08T14:21:16.118Z"
+    },
+    "setitem": {
+      "count": 2,
+      "users": {
+        "101657815871606@lid": 2
+      },
+      "lastUsed": "2026-07-08T14:24:21.414Z"
+    },
+    "setbordameio": {
+      "count": 1,
+      "users": {
+        "101657815871606@lid": 1
+      },
+      "lastUsed": "2026-07-08T14:22:34.660Z"
+    },
+    "setborda": {
+      "count": 1,
+      "users": {
+        "101657815871606@lid": 1
+      },
+      "lastUsed": "2026-07-08T14:25:48.090Z"
+    },
+    "settitulo": {
+      "count": 2,
+      "users": {
+        "101657815871606@lid": 2
+      },
+      "lastUsed": "2026-07-08T14:27:39.192Z"
+    },
+    "setseparador": {
+      "count": 1,
+      "users": {
+        "101657815871606@lid": 1
+      },
+      "lastUsed": "2026-07-08T14:30:24.266Z"
+    },
+    "fotomenu": {
+      "count": 1,
+      "users": {
+        "101657815871606@lid": 1
+      },
+      "lastUsed": "2026-07-08T14:39:34.414Z"
+    },
+    "play": {
+      "count": 2,
+      "users": {
+        "101657815871606@lid": 2
+      },
+      "lastUsed": "2026-07-08T20:22:18.162Z"
+    }
+  },
+  "lastUpdated": "2026-07-08T20:22:18.162Z"
+}

@@ -1,156 +1,158 @@
-import https from 'https'
 import fs from 'fs'
-import verificarAPI from '../API.js'
+import os from 'os'
+import path from 'path'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+import yts from 'yt-search'
 
-const CONFIG_FILE = JSON.parse(
-  fs.readFileSync(new URL('../../config.json', import.meta.url), 'utf8')
-)
+const execAsync = promisify(exec)
 
-function request(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, res => {
-      let data = ''
-      res.on('data', chunk => data += chunk)
-      res.on('end', () => {
-        try {
-          resolve(JSON.parse(data))
-        } catch {
-          reject(new Error('Resposta inválida da API'))
-        }
-      })
-    }).on('error', reject)
-  })
+// youtube-dl-exec é opcional (o binário dele não existe pra todas arquiteturas,
+// ex: Termux/Android). Se não estiver disponível, caímos pro yt-dlp do sistema.
+let ytdlExec = null
+try {
+  const mod = await import('youtube-dl-exec')
+  ytdlExec = mod.default
+} catch {
+  ytdlExec = null
 }
 
-function downloadFile(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, res => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        return downloadFile(res.headers.location).then(resolve).catch(reject)
-      }
-      if (res.statusCode !== 200) {
-        reject(new Error(`HTTP ${res.statusCode}`))
-        return
-      }
-      const chunks = []
-      res.on('data', chunk => chunks.push(chunk))
-      res.on('end', () => resolve(Buffer.concat(chunks)))
-    }).on('error', reject)
-  })
+function extractVideoId(url) {
+  const m = url.match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/)
+  return m ? m[1] : null
 }
 
 async function search(query) {
-  const checkAPI = await verificarAPI()
-  if (checkAPI !== true) return { ok: false, msg: checkAPI }
-
   try {
-    const { apikey_vex, site_vex } = CONFIG_FILE
-    const url = `${site_vex}/api/pesquisa/youtube?apikey=${apikey_vex}&query=${encodeURIComponent(query)}`
+    const id = extractVideoId(query)
+    const video = id ? await yts({ videoId: id }) : (await yts(query)).videos?.[0]
 
-    const data = await request(url)
-
-
-    const checkAfter = await verificarAPI(data)
-    if (checkAfter !== true) return { ok: false, msg: checkAfter }
-
-    if (!data?.status) {
-      throw new Error('Erro ao buscar vídeo')
-    }
-
-    const results = data.results
-    if (!results || results.length === 0) {
-      return { ok: false, msg: 'Nenhum vídeo encontrado' }
-    }
-
-    const video = results[0]
+    if (!video) return { ok: false, msg: 'Nenhum vídeo encontrado' }
 
     return {
       ok: true,
       data: {
         videoId: video.videoId,
-        url: video.url,
+        url: video.url || `https://www.youtube.com/watch?v=${video.videoId}`,
         title: video.title,
-        description: video.description,
+        description: video.description || '',
         thumbnail: video.thumbnail,
         seconds: video.seconds,
         timestamp: video.timestamp,
         views: video.views,
-        ago: video.ago,
-        author: video.author?.name
+        ago: video.ago || '',
+        author: { name: video.author?.name || 'Desconhecido' }
       }
     }
-
   } catch (err) {
     return { ok: false, msg: err.message }
   }
 }
 
+// Roda o yt-dlp: tenta o binário do npm (youtube-dl-exec) primeiro,
+// se não existir/falhar usa o comando "yt-dlp" instalado no sistema (pip).
+async function downloadWithYtDlp(url, { audioOnly, output }) {
+  if (ytdlExec) {
+    try {
+      const opts = {
+        noPlaylist: true,
+        output
+      }
+      if (audioOnly) {
+        opts.extractAudio = true
+        opts.audioFormat = 'mp3'
+        opts.audioQuality = 5
+      } else {
+        opts.format = 'bestvideo[ext=mp4][height<=480]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+        opts.mergeOutputFormat = 'mp4'
+      }
+      await ytdlExec(url, opts)
+      return
+    } catch (err) {
+      // binário do npm falhou (ex: arquitetura não suportada) — cai pro sistema
+    }
+  }
+
+  const args = audioOnly
+    ? `-x --audio-format mp3 --audio-quality 5`
+    : `-f "bestvideo[ext=mp4][height<=480]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4`
+
+  await execAsync(
+    `yt-dlp ${args} --no-playlist -o "${output}" "${url}"`,
+    { maxBuffer: 1024 * 1024 * 300, timeout: 180000 }
+  )
+}
+
+async function getTitleWithYtDlp(url) {
+  if (ytdlExec) {
+    try {
+      const info = await ytdlExec(url, { getTitle: true, noPlaylist: true })
+      if (typeof info === 'string' && info.trim()) return info.trim()
+    } catch {}
+  }
+  try {
+    const { stdout } = await execAsync(`yt-dlp --get-title --no-playlist "${url}"`, { timeout: 30000 })
+    if (stdout?.trim()) return stdout.trim()
+  } catch {}
+  return null
+}
+
+// Baixa e converte para mp3 (grátis, sem apikey)
 async function mp3(url) {
-  const checkAPI = await verificarAPI()
-  if (checkAPI !== true) return { ok: false, msg: checkAPI }
+  const tmpBase = path.join(os.tmpdir(), `nazuna_yt_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+  const finalFile = `${tmpBase}.mp3`
 
   try {
-    const { apikey_vex, site_vex } = CONFIG_FILE
-    const api = `${site_vex}/api/downloads/youtubemp3?apikey=${apikey_vex}&query=${encodeURIComponent(url)}`
-    
-    const data = await request(api)
+    await downloadWithYtDlp(url, { audioOnly: true, output: `${tmpBase}.%(ext)s` })
 
-
-    const checkAfter = await verificarAPI(data)
-    if (checkAfter !== true) return { ok: false, msg: checkAfter }
-
-    const resposta = data?.resposta
-
-    if (!resposta?.dlurl) {
-      throw new Error('URL de download não encontrada')
+    if (!fs.existsSync(finalFile)) {
+      throw new Error('Não foi possível gerar o arquivo de áudio (verifique se o yt-dlp está instalado)')
     }
 
-    const buffer = await downloadFile(resposta.dlurl)
+    const buffer = fs.readFileSync(finalFile)
+    const title = (await getTitleWithYtDlp(url)) || 'audio'
+
+    fs.unlink(finalFile, () => {})
 
     return {
       ok: true,
       buffer,
-      title: resposta.title || 'YouTube Audio',
-      thumbnail: resposta.thumbnail || '',
-      filename: `${(resposta.title || 'audio').replace(/[^\w\s]/gi, '')}.mp3`
+      title,
+      thumbnail: '',
+      filename: `${title.replace(/[^\w\s]/gi, '').slice(0, 60) || 'audio'}.mp3`
     }
-
   } catch (err) {
+    try { if (fs.existsSync(finalFile)) fs.unlinkSync(finalFile) } catch {}
     return { ok: false, msg: err.message }
   }
 }
 
+// Baixa vídeo (mp4)
 async function mp4(url) {
-  const checkAPI = await verificarAPI()
-  if (checkAPI !== true) return { ok: false, msg: checkAPI }
+  const tmpBase = path.join(os.tmpdir(), `nazuna_yt_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+  const finalFile = `${tmpBase}.mp4`
 
   try {
-    const { apikey_vex, site_vex } = CONFIG_FILE
-    const api = `${site_vex}/api/downloads/youtubemp4?apikey=${apikey_vex}&query=${encodeURIComponent(url)}`
-    
-    const data = await request(api)
+    await downloadWithYtDlp(url, { audioOnly: false, output: `${tmpBase}.%(ext)s` })
 
-
-    const checkAfter = await verificarAPI(data)
-    if (checkAfter !== true) return { ok: false, msg: checkAfter }
-
-    const resposta = data?.resposta
-
-    if (!resposta?.dlurl) {
-      throw new Error('URL de download não encontrada')
+    if (!fs.existsSync(finalFile)) {
+      throw new Error('Não foi possível gerar o arquivo de vídeo (verifique se o yt-dlp está instalado)')
     }
 
-    const buffer = await downloadFile(resposta.dlurl)
+    const buffer = fs.readFileSync(finalFile)
+    const title = (await getTitleWithYtDlp(url)) || 'video'
+
+    fs.unlink(finalFile, () => {})
 
     return {
       ok: true,
       buffer,
-      title: resposta.title || 'YouTube Video',
-      thumbnail: resposta.thumbnail || '',
-      filename: `${(resposta.title || 'video').replace(/[^\w\s]/gi, '')}.mp4`
+      title,
+      thumbnail: '',
+      filename: `${title.replace(/[^\w\s]/gi, '').slice(0, 60) || 'video'}.mp4`
     }
-
   } catch (err) {
+    try { if (fs.existsSync(finalFile)) fs.unlinkSync(finalFile) } catch {}
     return { ok: false, msg: err.message }
   }
 }
@@ -158,3 +160,4 @@ async function mp4(url) {
 export { search, mp3, mp4 }
 export const ytmp3 = mp3
 export const ytmp4 = mp4
+

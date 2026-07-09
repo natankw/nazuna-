@@ -1,0 +1,126 @@
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+import yts from 'yt-search'
+import youtubedl from 'youtube-dl-exec'
+import ffmpegPath from 'ffmpeg-static'
+
+function extractVideoId(url) {
+  const m = url.match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/)
+  return m ? m[1] : null
+}
+
+async function search(query) {
+  try {
+    const id = extractVideoId(query)
+    const video = id ? await yts({ videoId: id }) : (await yts(query)).videos?.[0]
+
+    if (!video) return { ok: false, msg: 'Nenhum vídeo encontrado' }
+
+    return {
+      ok: true,
+      data: {
+        videoId: video.videoId,
+        url: video.url || `https://www.youtube.com/watch?v=${video.videoId}`,
+        title: video.title,
+        description: video.description || '',
+        thumbnail: video.thumbnail,
+        seconds: video.seconds,
+        timestamp: video.timestamp,
+        views: video.views,
+        ago: video.ago || '',
+        author: { name: video.author?.name || 'Desconhecido' }
+      }
+    }
+  } catch (err) {
+    return { ok: false, msg: err.message }
+  }
+}
+
+// Baixa e converte para mp3 usando yt-dlp (binário baixado automaticamente pelo npm install, sem apikey)
+async function mp3(url) {
+  const tmpBase = path.join(os.tmpdir(), `nazuna_yt_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+  const finalFile = `${tmpBase}.mp3`
+
+  try {
+    await youtubedl(url, {
+      extractAudio: true,
+      audioFormat: 'mp3',
+      audioQuality: 5,
+      noPlaylist: true,
+      ffmpegLocation: ffmpegPath,
+      output: `${tmpBase}.%(ext)s`
+    })
+
+    if (!fs.existsSync(finalFile)) {
+      throw new Error('Não foi possível gerar o arquivo de áudio')
+    }
+
+    const buffer = fs.readFileSync(finalFile)
+
+    let title = 'audio'
+    try {
+      const info = await youtubedl(url, { getTitle: true, noPlaylist: true })
+      if (typeof info === 'string' && info.trim()) title = info.trim()
+    } catch {}
+
+    fs.unlink(finalFile, () => {})
+
+    return {
+      ok: true,
+      buffer,
+      title,
+      thumbnail: '',
+      filename: `${title.replace(/[^\w\s]/gi, '').slice(0, 60) || 'audio'}.mp3`
+    }
+  } catch (err) {
+    try { if (fs.existsSync(finalFile)) fs.unlinkSync(finalFile) } catch {}
+    return { ok: false, msg: err.message }
+  }
+}
+
+// Baixa vídeo (mp4) usando yt-dlp
+async function mp4(url) {
+  const tmpBase = path.join(os.tmpdir(), `nazuna_yt_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+  const finalFile = `${tmpBase}.mp4`
+
+  try {
+    await youtubedl(url, {
+      format: 'bestvideo[ext=mp4][height<=480]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+      noPlaylist: true,
+      mergeOutputFormat: 'mp4',
+      ffmpegLocation: ffmpegPath,
+      output: `${tmpBase}.%(ext)s`
+    })
+
+    if (!fs.existsSync(finalFile)) {
+      throw new Error('Não foi possível gerar o arquivo de vídeo')
+    }
+
+    const buffer = fs.readFileSync(finalFile)
+
+    let title = 'video'
+    try {
+      const info = await youtubedl(url, { getTitle: true, noPlaylist: true })
+      if (typeof info === 'string' && info.trim()) title = info.trim()
+    } catch {}
+
+    fs.unlink(finalFile, () => {})
+
+    return {
+      ok: true,
+      buffer,
+      title,
+      thumbnail: '',
+      filename: `${title.replace(/[^\w\s]/gi, '').slice(0, 60) || 'video'}.mp4`
+    }
+  } catch (err) {
+    try { if (fs.existsSync(finalFile)) fs.unlinkSync(finalFile) } catch {}
+    return { ok: false, msg: err.message }
+  }
+}
+
+export { search, mp3, mp4 }
+export const ytmp3 = mp3
+export const ytmp4 = mp4
+

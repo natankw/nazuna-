@@ -1,0 +1,53 @@
+{
+  "mark": {},
+  "createdAt": "2026-07-08T13:35:09.448Z",
+  "groupName": "D/s know 🎴",
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "contador": [
+    {
+      "id": "101657815871606@lid",
+      "msg": 3,
+      "cmd": 2,
+      "figu": 1,
+      "pushname": ".",
+      "firstSeen": "2026-07-08T13:35:09.460Z",
+      "lastActivity": "2026-07-08T14:01:49.969Z"
+    },
+    {
+      "id": "198337915547773@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Melha",
+      "firstSeen": "2026-07-08T13:35:40.085Z",
+      "lastActivity": "2026-07-08T13:35:40.085Z"
+    },
+    {
+      "id": "274598817960094@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "jade♡☆",
+      "firstSeen": "2026-07-08T20:34:11.004Z",
+      "lastActivity": "2026-07-08T20:34:11.012Z"
+    },
+    {
+      "id": "239809985511656@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "🐰ᥒ᥆һᥲძіm ⍴ᥙძіmძіm🫟",
+      "firstSeen": "2026-07-08T20:41:35.068Z",
+      "lastActivity": "2026-07-08T20:41:35.078Z"
+    }
+  ]
+}
