@@ -4,3 +4,4 @@ logs/
 cache/
 temp/
 *.log
+node_modules/
